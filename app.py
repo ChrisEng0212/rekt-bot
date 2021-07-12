@@ -10,10 +10,10 @@ import ast
 import time
 
 try:
-    from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1
+    from meta import DATABASE_URL, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1
 
 except:
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    DATABASE_URL = os.environ['DATABASE_URL']
     SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = False
     channel_access_token = os.environ['CHANNEL_ACCESS']
@@ -31,7 +31,7 @@ from linebot.exceptions import (
 from linebot.models import *
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['DATABASE_URL'] = DATABASE_URL
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['DEBUG'] = DEBUG
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -65,10 +65,10 @@ def home():
 
 
 
-@app.route("/tv_callback/<string:data>", methods=['POST'])
-def callback(data):
-    print('TV_CALLBACK', data)
-    line_bot_api.broadcast(TextSendMessage(text='Hello World!'))
+@app.route("/tv_callback/<string:tvdata>", methods=['POST'])
+def callback(tvdata):
+    print('TV_CALLBACK', tvdata)
+    line_bot_api.broadcast(TextSendMessage(text=tvdata))
 
 
 
