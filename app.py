@@ -8,6 +8,7 @@ import json
 import os
 import ast
 import time
+import bybit
 
 try:
     from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1
@@ -82,7 +83,7 @@ def callback(tvdata):
     funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result'][coin]['available_balance']
     print(funds)
 
-    line_bot_api.broadcast(TextSendMessage(text=client+fund))
+    line_bot_api.broadcast(TextSendMessage(text=funds))
     return tvdata
 
 
