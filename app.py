@@ -64,10 +64,11 @@ def home():
     return 'Hello, World!'
 
 
-@app.route("/tv_callback/<string:tvdata>", methods=['POST'])
+@app.route("/tv_callback/<string:tvdata>", methods=['POST', 'GET'])
 def callback(tvdata):
     print('TV_CALLBACK', tvdata)
     line_bot_api.broadcast(TextSendMessage(text=tvdata))
+    return tvdata
 
 
 @handler.add(FollowEvent)
