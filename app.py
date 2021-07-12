@@ -67,9 +67,10 @@ def home():
 
 @app.route("/tv_callback/<string:tvdata>", methods=['POST', 'GET'])
 def callback(tvdata):
-    sideBS = "Buy"
+    sideBS = tvdata
     account = 1
     coin = 'BTC'
+    pair = 'BTCUSDT'
     top = 31723 # first entry
     bottom = 31344 #last entry
     stop = 31100
@@ -80,10 +81,26 @@ def callback(tvdata):
     client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
     print(client)
 
-    funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result'][coin]['available_balance']
-    print(funds)
+    ##funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result']['USDT']['available_balance']
+    ##print(funds)
 
-    line_bot_api.broadcast(TextSendMessage(text=funds))
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+
+    if sideBS == 'Sell':
+        stop = last_price + (last_price * 0.015)
+        profit = last_price - (last_price * 0.04)
+    else:
+        stop = last_price - (last_price * 0.015)
+        profit = last_price + (last_price * 0.04)
+
+    line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
+
+    try:
+        position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
+        print(postition)
+    except:
+        print(client.LinearOrder.LinearOrder_new(side="Sell",symbol="BTCUSDT",order_type="Market",qty=0.001,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+
     return tvdata
 
 
