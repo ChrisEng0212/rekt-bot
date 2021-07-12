@@ -1,0 +1,9 @@
+.DS_Store
+static/.DS_Store
+static/json_files
+
+meta.py
+.env
+venv
+
+__pycache__
