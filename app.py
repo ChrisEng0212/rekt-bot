@@ -66,8 +66,23 @@ def home():
 
 @app.route("/tv_callback/<string:tvdata>", methods=['POST', 'GET'])
 def callback(tvdata):
+    sideBS = "Buy"
+    account = 1
+    coin = 'BTC'
+    top = 31723 # first entry
+    bottom = 31344 #last entry
+    stop = 31100
+    profit = 35800
+
+    leverage = 4
     print('TV_CALLBACK', tvdata)
-    line_bot_api.broadcast(TextSendMessage(text=tvdata))
+    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
+    print(client)
+
+    funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result'][coin]['available_balance']
+    print(funds)
+
+    line_bot_api.broadcast(TextSendMessage(text=client+fund))
     return tvdata
 
 
