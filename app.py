@@ -11,7 +11,7 @@ import time
 import bybit
 
 try:
-    from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1
+    from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1, key_code
 
 except:
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
@@ -21,6 +21,7 @@ except:
     channel_secret = os.environ['CHANNEL_SECRET']
     api_key1 = os.environ['api_key1']
     api_secret1 = os.environ['api_secret1']
+    key_code = os.environ['key_code']
 
 
 from linebot import (
@@ -65,19 +66,17 @@ def home():
     return 'Hello, World!'
 
 
-@app.route("/tv_callback/<string:tvdata>", methods=['POST', 'GET'])
-def callback(tvdata):
+@app.route("/bs_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
+def buySell(code, tvdata):
+    if code != key_code:
+        return 'Invalid'
+
     sideBS = tvdata
     account = 1
     coin = 'BTC'
     pair = 'BTCUSDT'
-    top = 31723 # first entry
-    bottom = 31344 #last entry
-    stop = 31100
-    profit = 35800
 
-    leverage = 4
-    print('TV_CALLBACK', tvdata)
+    print('BS_CALLBACK', tvdata)
     client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
     print(client)
 
@@ -99,7 +98,42 @@ def callback(tvdata):
         position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
         print(postition)
     except:
-        print(client.LinearOrder.LinearOrder_new(side="Sell",symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+
+    return tvdata
+
+
+@app.route("/gr_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
+def greenRed(code, tvdata):
+    if code != key_code:
+        return 'Invalid'
+
+    sideBS = tvdata
+    account = 1
+    coin = 'BTC'
+    pair = 'BTCUSDT'
+
+
+    print('GR_CALLBACK', tvdata)
+    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
+    print(client)
+
+    ##funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result']['USDT']['available_balance']
+    ##print(funds)
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+
+    message = 'none'
+
+    try:
+        position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
+        print(postition)
+        message = 'position found'
+    except:
+        message = 'no position'
+        ## print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+
+    line_bot_api.broadcast(TextSendMessage(text=tvdata + ':  ' + message))
 
     return tvdata
 
