@@ -92,13 +92,15 @@ def buySell(code, tvdata):
         stop = last_price - (last_price * 0.015)
         profit = last_price + (last_price * 0.04)
 
-    line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
+
 
     try:
         position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
         print(position)
+        line_bot_api.broadcast(TextSendMessage(text=sideBS + ' fail - postion already on'))
     except:
         print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+        line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
 
     return tvdata
 
@@ -123,17 +125,16 @@ def greenRed(code, tvdata):
 
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
 
-    message = 'none'
 
-    try:
-        position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
-        print(postition)
-        message = 'position found'
-    except:
-        message = 'no position'
-        ## print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
 
-    line_bot_api.broadcast(TextSendMessage(text=tvdata + ':  ' + message))
+    line_bot_api.broadcast(TextSendMessage(text=tvdata))
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][0]
+    print(type(position))
+    print(position['symbol'])
+    positionData = str(position['position_value']) + ' : ' + str(position['realised_pnl'])
+
+    line_bot_api.broadcast(TextSendMessage(text=positionData))
 
     return tvdata
 
