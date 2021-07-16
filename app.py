@@ -110,6 +110,29 @@ def greenRed(code, tvdata):
     if code != key_code:
         return 'Invalid'
 
+
+
+    print('TEST_CALLBACK', tvdata)
+    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
+    print(client)
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()
+    print(type(position))
+    print(position)
+
+    line_bot_api.broadcast(TextSendMessage(text=tvdata))
+
+    return position
+
+
+@app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
+def testMode(code, tvdata):
+    if code != key_code:
+        return 'Invalid'
+
     sideBS = tvdata
     account = 1
     coin = 'BTC'
