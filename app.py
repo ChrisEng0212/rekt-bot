@@ -47,7 +47,8 @@ handler = WebhookHandler(channel_secret)
 
 parser = WebhookParser(channel_secret)
 
-
+client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
+print('CLIENT', client)
 
 # class Trades(db.Model, UserMixin):
 #     id = db.Column(db.Integer, primary_key=True)
@@ -77,55 +78,69 @@ def buySell(code, tvdata):
     pair = 'BTCUSDT'
 
     print('BS_CALLBACK', tvdata)
-    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
-    print(client)
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+    print('PRICE', last_price)
 
     ##funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result']['USDT']['available_balance']
     ##print(funds)
 
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-
     if sideBS == 'Sell':
-        stop = last_price + (last_price * 0.015)
-        profit = last_price - (last_price * 0.04)
+        stop = last_price + (last_price * 0.01)
+        profit = last_price - (last_price * 0.1)
     else:
         stop = last_price - (last_price * 0.015)
         profit = last_price + (last_price * 0.04)
 
 
+    limit = last_price - (last_price * 0.04)
 
-    try:
-        position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][1]
-        print(position)
-        line_bot_api.broadcast(TextSendMessage(text=sideBS + ' fail - postion already on'))
-    except:
-        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+    five_thou = 5000/last_price
+
+    position_off = True
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    for x in position:
+        if x['size'] > 0:
+            print('SIZE', x['size'])
+            line_bot_api.broadcast(TextSendMessage(text=sideBS + ' fail - postion already on: ' + str(x['size']) + 'BTC'))
+            position_off = False
+
+    if postion_off:
+        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=five_thou,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
         line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
+        line_bot_api.broadcast(TextSendMessage(text='suggested limit: ' + str(limit)))
 
     return tvdata
 
 
 @app.route("/gr_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
-def greenRed(code, tvdata):
+def greenRedChange(code, tvdata):
     if code != key_code:
         return 'Invalid'
 
-
-
-    print('TEST_CALLBACK', tvdata)
-    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
-    print(client)
+    print('CHANGE_CALLBACK', tvdata)
 
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+    print('PRICE', last_price)
 
+    position_off = True
 
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()
-    print(type(position))
-    print(position)
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    for x in position:
+        if x['size'] > 0:
+            print('SIZE', x['size'])
+            print('SIDE', x['side'])
+            position_off = False
+            if x['side'] == 'Sell':
+                sl = last_price + 100
+                line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
+                print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
-    line_bot_api.broadcast(TextSendMessage(text=tvdata))
+    if position_off:
+        line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, no position'))
 
-    return position
+    return 'stop_loss adjustment'
 
 
 @app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
@@ -133,31 +148,21 @@ def testMode(code, tvdata):
     if code != key_code:
         return 'Invalid'
 
-    sideBS = tvdata
-    account = 1
-    coin = 'BTC'
-    pair = 'BTCUSDT'
+    print('TEST_CALLBACK:', tvdata)
+
+    # line_bot_api.broadcast(TextSendMessage(text=tvdata))
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    for x in position:
+        if x['size'] > 0:
+            print(x)
+            print(x['size'])
+    print(len(position))
+
+    print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=31900).result())
 
 
-    print('GR_CALLBACK', tvdata)
-    client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
-    print(client)
-
-    ##funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result']['USDT']['available_balance']
-    ##print(funds)
-
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-
-
-
-    line_bot_api.broadcast(TextSendMessage(text=tvdata))
-
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result'][0]
-    print(type(position))
-    print(position['symbol'])
-    positionData = str(position['position_value']) + ' : ' + str(position['realised_pnl'])
-
-    line_bot_api.broadcast(TextSendMessage(text=positionData))
+    # line_bot_api.broadcast(TextSendMessage(text=positionData))
 
     return tvdata
 
