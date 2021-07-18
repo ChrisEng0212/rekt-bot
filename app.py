@@ -106,8 +106,8 @@ def buySell(code, tvdata):
             line_bot_api.broadcast(TextSendMessage(text=sideBS + ' fail - postion already on: ' + str(x['size']) + 'BTC'))
             position_off = False
 
-    if postion_off:
-        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=five_thou,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+    if position_off:
+        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.15,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
         line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
         line_bot_api.broadcast(TextSendMessage(text='suggested limit: ' + str(limit)))
 
@@ -138,7 +138,7 @@ def greenRedChange(code, tvdata):
                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
     if position_off:
-        line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, no position'))
+        line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, no position, BTC: ' + str(last_price)))
 
     return 'stop_loss adjustment'
 
@@ -169,7 +169,9 @@ def testMode(code, tvdata):
 
 @handler.add(FollowEvent)
 def handle_follow():
+    line_bot_api.broadcast(TextSendMessage(text='some joined'))
     print('someone joined')
+
 
 @handler.add(UnfollowEvent)
 def handle_unfollow():
