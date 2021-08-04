@@ -59,6 +59,18 @@ print('CLIENT', client)
 # admin.add_view(MyModelView(User, db.session))
 # admin.add_view(MyModelView(Recruits, db.session))
 
+# obj = {
+#  "side": "Sell",
+#  "time": "{{timenow}}",
+#  "ticker":"{{ticker}}" ,
+#  "strategy": "supertrend",
+#  "exchange": "{{exchange}}",
+#  "open":{{open}},
+#  "high":{{high}},
+#  "low":{{low}},
+#  "close":{{close}},
+#  "volume":{{volume}}
+# }
 
 ''' UI pages '''
 
@@ -141,6 +153,34 @@ def greenRedChange(code, tvdata):
         line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, no position, BTC: ' + str(last_price)))
 
     return 'stop_loss adjustment'
+
+
+@app.route("/divergenceAction", methods=['POST', 'GET'])
+def divergenceAction():
+
+    line_bot_api.broadcast(TextSendMessage(text='signal'))
+    webhook_data = json.loads(request.data)
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+    print('PRICE', last_price)
+
+    position_off = True
+
+    line_bot_api.broadcast(TextSendMessage(text=json.dumps(webhook_data)))
+
+    # position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    # for x in position:
+    #     if x['size'] > 0:
+    #         print('SIZE', x['size'])
+    #         print('SIDE', x['side'])
+    #         position_off = False
+    #         if x['side'] == 'Sell':
+    #             sl = last_price + 100
+    #             line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
+    #             print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
+
+
+    return 'negativeDiv'
 
 
 @app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
