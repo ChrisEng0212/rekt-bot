@@ -159,11 +159,16 @@ def divergenceAction():
 
     line_bot_api.broadcast(TextSendMessage(text='signal'))
     webhook_data = json.loads(request.data)
+    code = webhook_data['code']
     closeP =  webhook_data['close']
     openP = webhook_data['open']
     ema = webhook_data['ema']
     strategy = webhook_data['strategy']
     side = webhook_data['side']
+
+    if code != key_code:
+        line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
+        return 'Invalid'
 
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
     print('PRICE', last_price)
@@ -237,7 +242,6 @@ def crossAction():
     position_off = True
 
     line_bot_api.broadcast(TextSendMessage(text=json.dumps(webhook_data)))
-
 
     position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
     for x in position:
