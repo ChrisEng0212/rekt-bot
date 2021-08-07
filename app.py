@@ -176,29 +176,34 @@ def divergenceAction():
     line_bot_api.broadcast(TextSendMessage(text=str(closeP) + str(last_price)))
 
     ## calculate candle
-    candle == 'red'
+    candle = 'red'
     if openP < closeP:
-        candle == 'green'
+        candle = 'green'
 
     line_bot_api.broadcast(TextSendMessage(text=candle))
 
     ## calculate distance from ema
-    distance = round((((closeP - ema)/close)*100), 2)
+    distance = round((((closeP - ema)/closeP)*100), 2)
 
+    line_bot_api.broadcast(TextSendMessage(text=str(distance)))
 
     ## calculate stop_loss
-    stopLoss = close
+    stopLoss = closeP
+    marker = 0
     if abs(distance) < 2:
         if side == 'Buy':
-            stopLoss = close*0.99
+            stopLoss = closeP*0.99
         else:
-            stopLoss = close*1.01
+            stopLoss = closeP*1.01
+        marker = 1
     else:
         if side == 'Buy':
-            stopLoss = close + (close - (distance/2)/100 )
+            stopLoss = closeP + (closeP - (distance/2)/100 )
         else:
-            stopLoss = close - (close - (distance/2)/100 )
+            stopLoss = closeP - (closeP - (distance/2)/100 )
+        marker = 2
 
+    line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + 'Marker: ' + str(marker) ))
 
     ## cancel action
     if abs(distance) < 1:
@@ -222,7 +227,7 @@ def divergenceAction():
                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
     if position_off:
-        line_bot_api.broadcast(TextSendMessage(text='position_off' + str(close)))
+        line_bot_api.broadcast(TextSendMessage(text='position_off' + str(closeP)))
         ## choose dollar amount
         units = 1000/last_price
         print(client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=units,stop_loss=stopLoss,take_profit=ema,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
