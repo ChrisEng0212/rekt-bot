@@ -238,7 +238,7 @@ def divergenceAction():
 @app.route("/crossAction", methods=['POST', 'GET'])
 def crossAction():
 
-    line_bot_api.broadcast(TextSendMessage(text='cross'))
+    # line_bot_api.broadcast(TextSendMessage(text='cross'))
     webhook_data = json.loads(request.data)
 
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
@@ -255,10 +255,15 @@ def crossAction():
             print('SIDE', x['side'])
             line_bot_api.broadcast(TextSendMessage(text='CROSS POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
             position_off = False
-            # if x['side'] == 'Sell':
-            #     sl = last_price + 100
-            #     line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
-            #     print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
+            ## short bitcoin and crossUnder
+            if x['side'] == 'Sell' and webhook_data['strategy'] == 'crossUnder':
+                 sl = webhook_data['ema'] + 100
+                 line_bot_api.broadcast(TextSendMessage(text='Shorting/crossUnder signal - stop_loss adjusted to: ' + str(sl)))
+                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
+            if x['side'] == 'Buy' and webhook_data['strategy'] == 'crossOver':
+                 sl = webhook_data['ema'] - 100
+                 line_bot_api.broadcast(TextSendMessage(text='Longing/crossOver signal - stop_loss adjusted to: ' + str(sl)))
+                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
     return 'ema cross'
 
