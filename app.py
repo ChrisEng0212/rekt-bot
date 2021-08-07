@@ -104,7 +104,6 @@ def buySell(code, tvdata):
         stop = last_price - (last_price * 0.015)
         profit = last_price + (last_price * 0.04)
 
-
     limit = last_price - (last_price * 0.04)
 
     five_thou = 5000/last_price
@@ -160,6 +159,77 @@ def divergenceAction():
 
     line_bot_api.broadcast(TextSendMessage(text='signal'))
     webhook_data = json.loads(request.data)
+    closeP =  webhook_data['close']
+    openP = webhook_data['open']
+    ema = webhook_data['ema']
+    strategy = webhook_data['strategy']
+    side = webhook_data['side']
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+    print('PRICE', last_price)
+
+    line_bot_api.broadcast(TextSendMessage(text=str(closeP) + str(last_price)))
+
+    ## calculate candle
+    candle == 'red'
+    if openP < closeP:
+        candle == 'green'
+
+    line_bot_api.broadcast(TextSendMessage(text=candle))
+
+    ## calculate distance from ema
+    distance = round((((closeP - ema)/close)*100), 2)
+
+
+    ## calculate stop_loss
+    stopLoss = close
+    if abs(distance) < 2:
+        if side == 'Buy':
+            stopLoss = close*0.99
+        else:
+            stopLoss = close*1.01
+    else:
+        if side == 'Buy':
+            stopLoss = close + (close - (distance/2)/100 )
+        else:
+            stopLoss = close - (close - (distance/2)/100 )
+
+
+    ## cancel action
+    if abs(distance) < 1:
+        line_bot_api.broadcast(TextSendMessage( text='Abort' + strategy + 'ema distance:' + str(distance) + str(stopLoss)  ))
+        return False
+    else:
+        line_bot_api.broadcast(TextSendMessage( text='Continue' + strategy + 'ema distance:' + str(distance) + str(stopLoss)  ))
+
+    position_off = True
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    for x in position:
+        if x['size'] > 0:
+            print('SIZE', x['size'])
+            print('SIDE', x['side'])
+            line_bot_api.broadcast(TextSendMessage(text='POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
+            position_off = False
+            if x['side'] == 'Sell':
+                sl = last_price + 100
+                line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
+                print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
+
+    if position_off:
+        line_bot_api.broadcast(TextSendMessage(text='position_off' + str(close)))
+        ## choose dollar amount
+        units = 1000/last_price
+        print(client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=units,stop_loss=stopLoss,take_profit=ema,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
+
+    return 'divergence'
+
+
+@app.route("/crossAction", methods=['POST', 'GET'])
+def crossAction():
+
+    line_bot_api.broadcast(TextSendMessage(text='cross'))
+    webhook_data = json.loads(request.data)
 
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
     print('PRICE', last_price)
@@ -168,19 +238,20 @@ def divergenceAction():
 
     line_bot_api.broadcast(TextSendMessage(text=json.dumps(webhook_data)))
 
-    # position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
-    # for x in position:
-    #     if x['size'] > 0:
-    #         print('SIZE', x['size'])
-    #         print('SIDE', x['side'])
-    #         position_off = False
-    #         if x['side'] == 'Sell':
-    #             sl = last_price + 100
-    #             line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
-    #             print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
+    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    for x in position:
+        if x['size'] > 0:
+            print('SIZE', x['size'])
+            print('SIDE', x['side'])
+            line_bot_api.broadcast(TextSendMessage(text='CROSS POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
+            position_off = False
+            # if x['side'] == 'Sell':
+            #     sl = last_price + 100
+            #     line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
+            #     print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
 
-    return 'negativeDiv'
+    return 'ema cross'
 
 
 @app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
