@@ -228,7 +228,7 @@ def divergenceAction():
         line_bot_api.broadcast(TextSendMessage(text='position_off ' + str(closeP)))
         ## choose dollar amount
         units = 1000/last_price
-        result = client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=units,stop_loss=stopLoss,take_profit=ema,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
+        result = client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=round(units),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
         line_bot_api.broadcast(TextSendMessage(text='result action'))
         line_bot_api.broadcast(TextSendMessage(text=json.dumps(result[0]['result'])))
 
@@ -255,13 +255,13 @@ def crossAction():
             position_off = False
             ## short bitcoin and crossUnder
             if x['side'] == 'Sell' and webhook_data['strategy'] == 'crossUnder':
-                 sl = webhook_data['ema'] + 100
-                 line_bot_api.broadcast(TextSendMessage(text='Shorting/crossUnder signal - stop_loss adjusted to: ' + str(sl)))
+                 sl = round(webhook_data['ema']) + 100
+                 line_bot_api.broadcast(TextSendMessage(text='Shorting / crossUnder signal - stop_loss adjusted to: ' + str(sl)))
                  print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
             if x['side'] == 'Buy' and webhook_data['strategy'] == 'crossOver':
-                 sl = webhook_data['ema'] - 100
-                 line_bot_api.broadcast(TextSendMessage(text='Longing/crossOver signal - stop_loss adjusted to: ' + str(sl)))
-                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
+                 sl = round(webhook_data['ema']) - 100
+                 line_bot_api.broadcast(TextSendMessage(text='Longing / crossOver signal - stop_loss adjusted to: ' + str(sl)))
+                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Buy", stop_loss=sl).result())
 
     return 'ema cross'
 
@@ -294,12 +294,13 @@ def test():
 
     print('TEST')
 
-    # line_bot_api.broadcast(TextSendMessage(text=tvdata))
-
     # result = client.LinearOrder.LinearOrder_new(side='Sell',symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=50000,take_profit=40000,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
     # print(type(result[0]['result']))
+    ema = 44950.55996856551
 
-    # line_bot_api.broadcast(TextSendMessage(text=positionData))
+    print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=round(ema)).result())
+
+    #line_bot_api.broadcast(TextSendMessage(text=positionData))
 
     return 'Test'
 
