@@ -251,7 +251,7 @@ def crossAction():
         if x['size'] > 0:
             print('SIZE', x['size'])
             print('SIDE', x['side'])
-            line_bot_api.broadcast(TextSendMessage(text='CROSS POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
+            line_bot_api.broadcast(TextSendMessage(text= webhook_data['strategy'] + ' POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
             position_off = False
             ## short bitcoin and crossUnder
             if x['side'] == 'Sell' and webhook_data['strategy'] == 'crossUnder':
