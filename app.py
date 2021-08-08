@@ -255,7 +255,9 @@ def crossAction():
             position_off = False
             ## short bitcoin and crossUnder
             if x['side'] == 'Sell':
+                 print('SellMode')
                  sl = round(webhook_data['ema']) + 100
+                 print('SL', sl)
                  line_bot_api.broadcast(TextSendMessage(text='Shorting / crossUnder signal - stop_loss adjusted to: ' + str(sl)))
                  print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
             if x['side'] == 'Buy':
