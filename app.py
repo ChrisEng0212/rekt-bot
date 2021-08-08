@@ -254,11 +254,11 @@ def crossAction():
             line_bot_api.broadcast(TextSendMessage(text= webhook_data['strategy'] + ' POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
             position_off = False
             ## short bitcoin and crossUnder
-            if x['side'] == 'Sell' and webhook_data['strategy'] == 'crossUnder':
+            if x['side'] == 'Sell':
                  sl = round(webhook_data['ema']) + 100
                  line_bot_api.broadcast(TextSendMessage(text='Shorting / crossUnder signal - stop_loss adjusted to: ' + str(sl)))
                  print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
-            if x['side'] == 'Buy' and webhook_data['strategy'] == 'crossOver':
+            if x['side'] == 'Buy':
                  sl = round(webhook_data['ema']) - 100
                  line_bot_api.broadcast(TextSendMessage(text='Longing / crossOver signal - stop_loss adjusted to: ' + str(sl)))
                  print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Buy", stop_loss=sl).result())
