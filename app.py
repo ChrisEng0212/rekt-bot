@@ -228,7 +228,9 @@ def divergenceAction():
         line_bot_api.broadcast(TextSendMessage(text='position_off ' + str(closeP)))
         ## choose dollar amount
         units = 1000/last_price
-        result = client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=round(units),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
+        line_bot_api.broadcast(TextSendMessage(text=str(round(units, 2)) + ' ' + str(round(stopLoss)) + ' ' + str(round(ema))    ))
+        result = client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=round(units, 2),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
+        print(result)
         line_bot_api.broadcast(TextSendMessage(text='result action'))
         line_bot_api.broadcast(TextSendMessage(text=json.dumps(result[0]['result'])))
 
