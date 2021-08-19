@@ -79,87 +79,13 @@ def home():
     return 'Hello, World!'
 
 
-@app.route("/bs_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
-def buySell(code, tvdata):
-    if code != key_code:
-        return 'Invalid'
-
-    sideBS = tvdata
-    account = 1
-    coin = 'BTC'
-    pair = 'BTCUSDT'
-
-    print('BS_CALLBACK', tvdata)
-
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-    print('PRICE', last_price)
-
-    ##funds = client.Wallet.Wallet_getBalance(coin=coin).result()[0]['result']['USDT']['available_balance']
-    ##print(funds)
-
-    if sideBS == 'Sell':
-        stop = last_price + (last_price * 0.01)
-        profit = last_price - (last_price * 0.1)
-    else:
-        stop = last_price - (last_price * 0.015)
-        profit = last_price + (last_price * 0.04)
-
-    limit = last_price - (last_price * 0.04)
-
-    five_thou = 5000/last_price
-
-    position_off = True
-
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
-    for x in position:
-        if x['size'] > 0:
-            print('SIZE', x['size'])
-            line_bot_api.broadcast(TextSendMessage(text=sideBS + ' fail - postion already on: ' + str(x['size']) + 'BTC'))
-            position_off = False
-
-    if position_off:
-        print(client.LinearOrder.LinearOrder_new(side=sideBS,symbol="BTCUSDT",order_type="Market",qty=0.15,stop_loss=stop,take_profit=profit,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result())
-        line_bot_api.broadcast(TextSendMessage(text=sideBS+str(last_price)))
-        line_bot_api.broadcast(TextSendMessage(text='suggested limit: ' + str(limit)))
-
-    return tvdata
-
-
-@app.route("/gr_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
-def greenRedChange(code, tvdata):
-    if code != key_code:
-        return 'Invalid'
-
-    print('CHANGE_CALLBACK', tvdata)
-
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-    print('PRICE', last_price)
-
-    position_off = True
-
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
-    for x in position:
-        if x['size'] > 0:
-            print('SIZE', x['size'])
-            print('SIDE', x['side'])
-            position_off = False
-            if x['side'] == 'Sell':
-                sl = last_price + 100
-                line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, stop_loss adjusted to: ' + str(sl)))
-                print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
-
-    if position_off:
-        line_bot_api.broadcast(TextSendMessage(text='MOMENTUM CHANGE, no position, BTC: ' + str(last_price)))
-
-    return 'stop_loss adjustment'
-
-
 @app.route("/divergenceAction", methods=['POST', 'GET'])
 def divergenceAction():
     line_bot_api.broadcast(TextSendMessage(text='signal'))
 
     webhook_data = json.loads(request.data)
 
+    asset = webhook_data['asset']
     code = webhook_data['code']
     closeP =  webhook_data['close']
     openP = webhook_data['open']
@@ -171,10 +97,20 @@ def divergenceAction():
         line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
         return 'Invalid'
 
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-    print('PRICE', last_price)
+    if asset == "BTCUSDT":
+        last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
+        line_bot_api.broadcast(   TextSendMessage(text='BTCUSDT ' + str(closeP) + ' ' + str(last_price)    )   )
+    if asset == "ETHUSDT":
+        try:
+            last_result = client.Market.Market_symbolInfo().result()[0]['result']
+            line_bot_api.broadcast(TextSendMessage(text='ETHUSDT try '))
+            line_bot_api.broadcast(TextSendMessage(text=json.dumps(last_result)))
+            last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][5]['last_price'])  # 4 is BTCUSDT
+            line_bot_api.broadcast(TextSendMessage(text='ETHUSDT ' + str(closeP) + ' ' + str(last_price)))
+        except:
+            line_bot_api.broadcast(TextSendMessage(text='try fail'))
 
-    line_bot_api.broadcast(TextSendMessage(text=str(closeP) + str(last_price)))
+    #print('PRICE', last_price)
 
     ## calculate candle
     candle = 'red'
@@ -189,7 +125,7 @@ def divergenceAction():
     line_bot_api.broadcast(TextSendMessage(text=str(distance)))
 
     ## calculate stop_loss
-    stopLoss = closeP
+    stopLoss = round(closeP)
     marker = 0
     if abs(distance) < 2:
         if side == 'Buy':
@@ -198,13 +134,14 @@ def divergenceAction():
             stopLoss = closeP*1.01
         marker = 1
     else:
+        factor = (abs(distance)/2)/100
         if side == 'Buy':
-            stopLoss = closeP + (closeP - (distance/2)/100 )
+            stopLoss = closeP * (1-factor)
         else:
-            stopLoss = closeP - (closeP - (distance/2)/100 )
+            stopLoss = closeP * (1+factor)
         marker = 2
 
-    line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + 'Marker: ' + str(marker) ))
+    line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + ' Marker: ' + str(marker) ))
 
     ## cancel action
     if abs(distance) < 1:
@@ -215,7 +152,7 @@ def divergenceAction():
 
     position_off = True
 
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
+    position = client.LinearPositions.LinearPositions_myPosition(symbol=asset).result()[0]['result']
     for x in position:
         if x['size'] > 0:
             print('SIZE', x['size'])
@@ -229,7 +166,7 @@ def divergenceAction():
         ## choose dollar amount
         units = 1000/last_price
         line_bot_api.broadcast(TextSendMessage(text=str(round(units, 2)) + ' ' + str(round(stopLoss)) + ' ' + str(round(ema))    ))
-        result = client.LinearOrder.LinearOrder_new(side=side,symbol="BTCUSDT",order_type="Market",qty=round(units, 2),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
+        result = client.LinearOrder.LinearOrder_new(side=side,symbol=asset,order_type="Market",qty=round(units, 2),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
         print(result)
         line_bot_api.broadcast(TextSendMessage(text='result action'))
         line_bot_api.broadcast(TextSendMessage(text=json.dumps(result[0]['result'])))
