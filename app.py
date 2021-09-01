@@ -81,7 +81,7 @@ def home():
 
 @app.route("/divergenceAction", methods=['POST', 'GET'])
 def divergenceAction():
-    line_bot_api.broadcast(TextSendMessage(text='signal'))
+    #line_bot_api.broadcast(TextSendMessage(text='signal'))
 
     webhook_data = json.loads(request.data)
 
@@ -104,7 +104,6 @@ def divergenceAction():
         try:
             last_result = client.Market.Market_symbolInfo().result()[0]['result']
             line_bot_api.broadcast(TextSendMessage(text='ETHUSDT try '))
-            line_bot_api.broadcast(TextSendMessage(text=json.dumps(last_result)))
             last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][5]['last_price'])  # 4 is BTCUSDT
             line_bot_api.broadcast(TextSendMessage(text='ETHUSDT ' + str(closeP) + ' ' + str(last_price)))
         except:
@@ -117,12 +116,10 @@ def divergenceAction():
     if openP < closeP:
         candle = 'green'
 
-    line_bot_api.broadcast(TextSendMessage(text=candle))
-
     ## calculate distance from ema
     distance = round((((closeP - ema)/closeP)*100), 2)
 
-    line_bot_api.broadcast(TextSendMessage(text=str(distance)))
+    #line_bot_api.broadcast(TextSendMessage(text=str(distance) + ' ' + candle))
 
     ## calculate stop_loss
     stopLoss = round(closeP)
@@ -141,11 +138,11 @@ def divergenceAction():
             stopLoss = closeP * (1+factor)
         marker = 2
 
-    line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + ' Marker: ' + str(marker) ))
+    # line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + ' Marker: ' + str(marker) ))
 
     ## cancel action
     if abs(distance) < 1:
-        line_bot_api.broadcast(TextSendMessage( text='Abort: ' + strategy + ' ema distance: ' + str(distance) + str(stopLoss)  ))
+        line_bot_api.broadcast(TextSendMessage( text='Abort: ' + strategy + ' ema distance: ' + str(distance) + ' ' + str(stopLoss)  ))
         return False
     else:
         line_bot_api.broadcast(TextSendMessage( text='Continue: ' + strategy + ' ema distance: ' + str(distance) + str(stopLoss)  ))
