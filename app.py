@@ -97,17 +97,14 @@ def divergenceAction():
         line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
         return 'Invalid'
 
+    last_price = 0.0
+
     if asset == "BTCUSDT":
         last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-        line_bot_api.broadcast(   TextSendMessage(text='BTCUSDT ' + str(closeP) + ' ' + str(last_price)    )   )
+        # line_bot_api.broadcast(   TextSendMessage(text='BTCUSDT ' + str(closeP) + ' ' + str(last_price)    )   )
     if asset == "ETHUSDT":
-        try:
-            last_result = client.Market.Market_symbolInfo().result()[0]['result']
-            line_bot_api.broadcast(TextSendMessage(text='ETHUSDT try '))
-            last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][5]['last_price'])  # 4 is BTCUSDT
-            line_bot_api.broadcast(TextSendMessage(text='ETHUSDT ' + str(closeP) + ' ' + str(last_price)))
-        except:
-            line_bot_api.broadcast(TextSendMessage(text='try fail'))
+        last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][5]['last_price'])  # 4 is BTCUSDT
+        # line_bot_api.broadcast(TextSendMessage(text='ETHUSDT ' + str(closeP) + ' ' + str(last_price)))
 
     #print('PRICE', last_price)
 
@@ -142,10 +139,10 @@ def divergenceAction():
 
     ## cancel action
     if abs(distance) < 1:
-        line_bot_api.broadcast(TextSendMessage( text='Abort: ' + strategy + ' ema distance: ' + str(distance) + ' ' + str(stopLoss)  ))
+        line_bot_api.broadcast(TextSendMessage( text=asset + ' Abort: ' + strategy + ' last: ' + str(last_price) + ' ema distance: ' + str(distance) + ' stop: ' + str(stopLoss)  ))
         return False
     else:
-        line_bot_api.broadcast(TextSendMessage( text='Continue: ' + strategy + ' ema distance: ' + str(distance) + str(stopLoss)  ))
+        line_bot_api.broadcast(TextSendMessage( text=asset + ' Continue: ' + strategy + ' last: ' + str(last_price) +  ' ema distance: ' + str(distance) + ' stop: ' + str(stopLoss)  ))
 
     position_off = True
 
