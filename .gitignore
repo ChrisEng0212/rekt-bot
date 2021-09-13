@@ -6,4 +6,6 @@ meta.py
 .env
 venv
 
+appold.py
+
 __pycache__

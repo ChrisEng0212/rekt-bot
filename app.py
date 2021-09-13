@@ -151,19 +151,19 @@ def divergenceAction():
         if x['size'] > 0:
             print('SIZE', x['size'])
             print('SIDE', x['side'])
-            line_bot_api.broadcast(TextSendMessage(text='POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
+            line_bot_api.broadcast(TextSendMessage(text='POSITION ON: ' + str(x['side']) + ' Amount: ' + str(x['size']) ))
             position_off = False
 
 
     if position_off:
-        line_bot_api.broadcast(TextSendMessage(text='position_off ' + str(closeP)))
+        #line_bot_api.broadcast(TextSendMessage(text='position_off ' + str(closeP)))
         ## choose dollar amount
         units = 1000/last_price
         line_bot_api.broadcast(TextSendMessage(text=str(round(units, 2)) + ' ' + str(round(stopLoss)) + ' ' + str(round(ema))    ))
         result = client.LinearOrder.LinearOrder_new(side=side,symbol=asset,order_type="Market",qty=round(units, 2),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
         print(result)
-        line_bot_api.broadcast(TextSendMessage(text='result action'))
-        line_bot_api.broadcast(TextSendMessage(text=json.dumps(result[0]['result'])))
+        #line_bot_api.broadcast(TextSendMessage(text='result action'))
+        line_bot_api.broadcast(TextSendMessage(text='ACTION: ' + json.dumps(result[0]['result'])))
 
     return 'divergence'
 
