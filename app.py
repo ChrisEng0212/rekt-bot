@@ -63,13 +63,15 @@ print('CLIENT', client)
 #  "side": "Sell",
 #  "time": "{{timenow}}",
 #  "ticker":"{{ticker}}" ,
-#  "strategy": "supertrend",
+#  "strategy": "momo",
 #  "exchange": "{{exchange}}",
 #  "open":{{open}},
-#  "high":{{high}},
-#  "low":{{low}},
-#  "close":{{close}},
-#  "volume":{{volume}}
+#  "openP":{{open[1]}},#
+#  "Cross":{{Cross}},
+#  "CrossP":{{Cross[1]}},
+#  "bbwp":{{bbwp}},
+#  "bbwpMA1":{{bbwpMA1}},
+#  "cutOff":{{cutOff}}
 # }
 
 ''' UI pages '''
@@ -79,8 +81,8 @@ def home():
     return 'Hello, World!'
 
 
-@app.route("/divergenceAction", methods=['POST', 'GET'])
-def divergenceAction():
+@app.route("/momoAction", methods=['POST', 'GET'])
+def momoAction():
     #line_bot_api.broadcast(TextSendMessage(text='signal'))
 
     webhook_data = json.loads(request.data)
@@ -168,37 +170,29 @@ def divergenceAction():
     return 'divergence'
 
 
-@app.route("/crossAction", methods=['POST', 'GET'])
-def crossAction():
+@app.route("/testAction/<string:code>", methods=['POST', 'GET'])
+def testAction(code):
+    print('TEST_CALLBACK:', code)
 
-    # line_bot_api.broadcast(TextSendMessage(text='cross'))
+    line_bot_api.broadcast(TextSendMessage(text='test'))
     webhook_data = json.loads(request.data)
 
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-    print('PRICE', last_price)
+    asset = webhook_data['asset']
+    code = webhook_data['code']
+    openP =  webhook_data['openP']
+    open = webhook_data['open']
+    strategy = webhook_data['strategy']
+    side = webhook_data['side']
+    Cross = webhook_data['Cross']
+    CrossP = webhook_data['CrossP']
+    bbwp = webhook_data['bbwp']
+    bbwpMA1 = webhook_data['bbwpMA1']
+    cutOff = webhook_data['cutOff']
 
-    position_off = True
 
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
-    for x in position:
-        if x['size'] > 0:
-            print('SIZE', x['size'])
-            print('SIDE', x['side'])
-            line_bot_api.broadcast(TextSendMessage(text= webhook_data['strategy'] + ' POSITION ON: ' + str(x['side']) + ' - ' + str(x['size']) ))
-            position_off = False
-            ## short bitcoin and crossUnder
-            if x['side'] == 'Sell':
-                 print('SellMode')
-                 sl = round(webhook_data['ema']) + 100
-                 print('SL', sl)
-                 line_bot_api.broadcast(TextSendMessage(text='Shorting / crossUnder signal - stop_loss adjusted to: ' + str(sl)))
-                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=sl).result())
-            if x['side'] == 'Buy':
-                 sl = round(webhook_data['ema']) - 100
-                 line_bot_api.broadcast(TextSendMessage(text='Longing / crossOver signal - stop_loss adjusted to: ' + str(sl)))
-                 print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Buy", stop_loss=sl).result())
+    line_bot_api.broadcast(TextSendMessage(text= webhook_data['strategy'] + '/' + webhook_data['Cross'] + '/' + webhook_data['bbwp'] ))
 
-    return 'ema cross'
+    return 'test cross'
 
 
 @app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
@@ -233,9 +227,9 @@ def test():
     # print(type(result[0]['result']))
     ema = 44950.55996856551
 
-    print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=round(ema)).result())
+    #print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=round(ema)).result())
 
-    #line_bot_api.broadcast(TextSendMessage(text=positionData))
+    line_bot_api.broadcast(TextSendMessage(text='positionData'))
 
     return 'Test'
 
