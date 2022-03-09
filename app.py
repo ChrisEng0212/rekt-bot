@@ -234,6 +234,15 @@ https://rekt-lbot.herokuapp.com/
  "open":"{{open}}"
 }
 
+{
+ "time": "{{timenow}}",
+ "interval": "{{interval}}",
+ "ticker":"{{ticker}}" ,
+ "action" :"Buy",
+ "code": "code",
+ "open":"{{open}}"
+}
+
 '''
 
 ''' UI pages '''
@@ -320,6 +329,7 @@ def momoAction():
     webhook_data = json.loads(request.data)
 
     ticker = webhook_data['ticker']
+    time = webhook_data['time']
     interval = webhook_data['interval']
     code = webhook_data['code']
     action = webhook_data['action']
@@ -330,14 +340,15 @@ def momoAction():
         return 'Invalid'
 
     coin_number = list(coinList.keys())[list(coinList.values()).index(ticker)]
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][coin_number]['last_price'])
+    print('COIN NUM', coin_number)
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][int(coin_number)]['last_price'])
 
     bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
 
     if bbwp.value == 'valueDown':
         print('BBWP CANCEL')
         try:
-            line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval))
+            line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval + ' ' + time + ' ' + open))
         except:
             print('BBWP LINE CANCEL', ticker, interval)
 
