@@ -293,9 +293,9 @@ def bbwp():
     return 'bbwp'
 
 
-def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval):
+def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval, open):
 
-    print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, interval)
+    print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, interval, open)
 
     result = client.LinearOrder.LinearOrder_new(
         side=side,
@@ -351,10 +351,10 @@ def momoAction():
 
     if bbwp.value == 'valueDown':
         print('BBWP CANCEL')
-        try:
-            line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval + ' ' + time + ' ' + open))
-        except:
-            print('BBWP LINE CANCEL', ticker, interval)
+        # try:
+        #     line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval + ' ' + time + ' ' + open))
+        # except:
+        #     print('BBWP LINE CANCEL', ticker, interval)
 
         return 'CANCELLED ACTION'
 
