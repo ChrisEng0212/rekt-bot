@@ -103,7 +103,7 @@ def bbwp():
     webhook_data = json.loads(request.data)
 
     ticker = webhook_data['ticker']
-    timeframe = webhook_data['interval']
+    interval = webhook_data['interval']
     code = webhook_data['code']
     action = webhook_data['action']
 
@@ -113,13 +113,13 @@ def bbwp():
         return 'Invalid'
 
 
-    entry = BBWPV.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+    entry = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
 
     if not entry:
-        newEntry = BBWPV(ticker=ticker, timeframe=timeframe, value='na')
+        newEntry = BBWPV(ticker=ticker, interval=interval, value='na')
         db.session.add(newEntry)
         db.session.commit()
-        entry = BBWPV.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+        entry = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
 
     if action == 'valueUp':
         entry.value = 'valueUp'
