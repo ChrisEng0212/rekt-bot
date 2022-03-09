@@ -50,15 +50,14 @@ parser = WebhookParser(channel_secret)
 client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
 print('CLIENT', client)
 
-class BBWP(db.Model):
+class BBWPV(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
     ticker =  db.Column(db.String, unique=False, nullable=False)
-    timeframe =  db.Column(db.String, unique=False, nullable=False)
-    ema =  db.Column(db.String, unique=False, nullable=False)
-    value =  db.Column(db.String, unique=False, nullable=False)
-    info =  db.Column(db.String, unique=False, nullable=False)
-    extra =  db.Column(db.String, unique=False, nullable=False)
+    interval =  db.Column(db.String, unique=False, nullable=True)
+    value =  db.Column(db.String, unique=False, nullable=True)
+    info =  db.Column(db.String, unique=False, nullable=True)
+    extra =  db.Column(db.String, unique=False, nullable=True)
 
 
 class MyModelView(ModelView):
@@ -68,7 +67,7 @@ class MyModelView(ModelView):
 
 admin = Admin(app)
 
-admin.add_view(MyModelView(BBWP, db.session))
+admin.add_view(MyModelView(BBWPV, db.session))
 
 '''
 
@@ -77,11 +76,11 @@ https://rekt-lbot.herokuapp.com/
 
 {
  "time": "{{timenow}}",
- "timeframe": "{{interval}}",
+ "interval": "{{interval}}",
  "ticker":"{{ticker}}" ,
  "strategy": "bbwp",
  "exchange": "{{exchange}}",
- "action" "action",
+ "action" :"action",
  "code": "code",
  "open":"{{open}}"
 }
@@ -114,13 +113,13 @@ def bbwp():
         return 'Invalid'
 
 
-    entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+    entry = BBWPV.query.filter_by(ticker=ticker, timeframe=timeframe).first()
 
     if not entry:
-        newEntry = BBWP(ticker=ticker, timeframe=timeframe, ema='na', value='na', info='na', extra='na')
+        newEntry = BBWPV(ticker=ticker, timeframe=timeframe, value='na')
         db.session.add(newEntry)
         db.session.commit()
-        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+        entry = BBWPV.query.filter_by(ticker=ticker, timeframe=timeframe).first()
 
     if action == 'valueUp':
         entry.value = 'valueUp'
