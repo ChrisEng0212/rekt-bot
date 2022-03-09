@@ -363,7 +363,7 @@ def momoAction():
         print('POSITION', position)
         if x['size'] > 0:
             print('POSITION CANCEL')
-            return None
+            return 'POSITION CANCEL'
 
 
     ''' GET STOPS '''
