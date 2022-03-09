@@ -71,12 +71,18 @@ admin = Admin(app)
 admin.add_view(MyModelView(BBWP, db.session))
 
 '''
+
+https://rekt-lbot.herokuapp.com/
+
+
 {
  "time": "{{timenow}}",
  "timeframe": "{{interval}}",
  "ticker":"{{ticker}}" ,
  "strategy": "bbwp",
  "exchange": "{{exchange}}",
+ "action" "action",
+ "code": "code",
  "open":"{{open}}"
 }
 
@@ -93,11 +99,15 @@ def home():
 def bbwp():
     #line_bot_api.broadcast(TextSendMessage(text='signal'))
 
+    #actions  emaUp emaDown  valUp valD
+
     webhook_data = json.loads(request.data)
 
     ticker = webhook_data['ticker']
     timeframe = webhook_data['interval']
     code = webhook_data['code']
+    action = webhook_data['action']
+
 
     if code != key_code:
         line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
@@ -107,11 +117,18 @@ def bbwp():
     entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
 
     if not entry:
-        newEntry = BBWP(ticker=ticker, timeframe=timeframe, ema='n', value='n', info='n', extra='n')
+        newEntry = BBWP(ticker=ticker, timeframe=timeframe, ema='na', value='na', info='na', extra='na')
         db.session.add(newEntry)
         db.session.commit()
         entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
 
+    if action == 'valueUp':
+        entry.value = 'valueUp'
+        db.session.commit()
+
+    if action == 'valueDown':
+        entry.value = 'valueDown'
+        db.session.commit()
 
     return 'bbwp'
 
