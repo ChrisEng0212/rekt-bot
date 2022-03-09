@@ -64,7 +64,9 @@ class Orders(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
     ticker =  db.Column(db.String, unique=False, nullable=False)
     interval =  db.Column(db.String, unique=False, nullable=True)
+    message =  db.Column(db.String, unique=False, nullable=True)
     data =  db.Column(db.String, unique=False, nullable=True)
+    info =  db.Column(db.String, unique=False, nullable=True)
 
 
 class MyModelView(ModelView):
@@ -310,9 +312,10 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
 
     print(result)
 
-    data = json.dumps(result[0])
+    message = result[0]['ret_msg']
+    data = json.dumps(result[0]['result'])
 
-    entry = Orders(ticker=ticker, interval=interval, data=data)
+    entry = Orders(ticker=ticker, interval=interval, message=message, data=data)
     db.session.add(entry)
     db.session.commit()
 
@@ -352,7 +355,7 @@ def momoAction():
         except:
             print('BBWP LINE CANCEL', ticker, interval)
 
-    side = action
+        return 'CANCELLED ACTION'
 
 
     ''' GET STOPS '''
@@ -375,12 +378,12 @@ def momoAction():
         "MATICUSDT" : 1
     }
 
-    dollars = 100
+    dollars = int(bbwp.info)
     units = round(dollars/last_price, roundUnits[ticker])
 
     print('UNITS', units)
 
-    placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval)
+    placeOrder(action, ticker, stop_loss, take_profit, last_price, units, interval)
 
 
     return 'momoAction'
