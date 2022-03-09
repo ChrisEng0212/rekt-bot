@@ -72,7 +72,6 @@ admin.add_view(MyModelView(BBWP, db.session))
 
 '''
 {
- "side": "Sell",
  "time": "{{timenow}}",
  "timeframe": "{{interval}}",
  "ticker":"{{ticker}}" ,
@@ -111,7 +110,7 @@ def bbwp():
         newEntry = BBWP(ticker=ticker, timeframe=timeframe)
         db.session.add(newEntry)
         db.session.commit()
-        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe, ema='', value='', info='', extra='').first()
 
 
     return 'bbwp'
