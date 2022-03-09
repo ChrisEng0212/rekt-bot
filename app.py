@@ -59,6 +59,13 @@ class BBWPV(db.Model):
     info =  db.Column(db.String, unique=False, nullable=True)
     extra =  db.Column(db.String, unique=False, nullable=True)
 
+class Orders(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    ticker =  db.Column(db.String, unique=False, nullable=False)
+    interval =  db.Column(db.String, unique=False, nullable=True)
+    data =  db.Column(db.String, unique=False, nullable=True)
+
 
 class MyModelView(ModelView):
     def is_accessible(self):
@@ -68,6 +75,148 @@ class MyModelView(ModelView):
 admin = Admin(app)
 
 admin.add_view(MyModelView(BBWPV, db.session))
+
+
+coinList = {
+    "0": "BTCUSD",
+    "1": "ETHUSD",
+    "2": "EOSUSD",
+    "3": "XRPUSD",
+    "4": "DOTUSD",
+    "5": "BITUSD",
+    "6": "BTCUSDT",
+    "7": "ETHUSDT",
+    "8": "EOSUSDT",
+    "9": "XRPUSDT",
+    "10": "BCHUSDT",
+    "11": "LTCUSDT",
+    "12": "XTZUSDT",
+    "13": "LINKUSDT",
+    "14": "ADAUSDT",
+    "15": "DOTUSDT",
+    "16": "UNIUSDT",
+    "17": "XEMUSDT",
+    "18": "SUSHIUSDT",
+    "19": "AAVEUSDT",
+    "20": "DOGEUSDT",
+    "21": "MATICUSDT",
+    "22": "ETCUSDT",
+    "23": "BNBUSDT",
+    "24": "FILUSDT",
+    "25": "SOLUSDT",
+    "26": "XLMUSDT",
+    "27": "TRXUSDT",
+    "28": "VETUSDT",
+    "29": "THETAUSDT",
+    "30": "COMPUSDT",
+    "31": "AXSUSDT",
+    "32": "LUNAUSDT",
+    "33": "SANDUSDT",
+    "34": "MANAUSDT",
+    "35": "KSMUSDT",
+    "36": "ATOMUSDT",
+    "37": "AVAXUSDT",
+    "38": "CHZUSDT",
+    "39": "CRVUSDT",
+    "40": "ENJUSDT",
+    "41": "GRTUSDT",
+    "42": "SHIB1000USDT",
+    "43": "YFIUSDT",
+    "44": "BSVUSDT",
+    "45": "ICPUSDT",
+    "46": "FTMUSDT",
+    "47": "ALGOUSDT",
+    "48": "DYDXUSDT",
+    "49": "NEARUSDT",
+    "50": "SRMUSDT",
+    "51": "OMGUSDT",
+    "52": "IOSTUSDT",
+    "53": "DASHUSDT",
+    "54": "FTTUSDT",
+    "55": "BITUSDT",
+    "56": "GALAUSDT",
+    "57": "CELRUSDT",
+    "58": "HBARUSDT",
+    "59": "ONEUSDT",
+    "60": "C98USDT",
+    "61": "MKRUSDT",
+    "62": "COTIUSDT",
+    "63": "ALICEUSDT",
+    "64": "EGLDUSDT",
+    "65": "RENUSDT",
+    "66": "TLMUSDT",
+    "67": "RUNEUSDT",
+    "68": "ILVUSDT",
+    "69": "FLOWUSDT",
+    "70": "WOOUSDT",
+    "71": "LRCUSDT",
+    "72": "ENSUSDT",
+    "73": "IOTXUSDT",
+    "74": "CHRUSDT",
+    "75": "BATUSDT",
+    "76": "STORJUSDT",
+    "77": "SNXUSDT",
+    "78": "SLPUSDT",
+    "79": "ANKRUSDT",
+    "80": "LPTUSDT",
+    "81": "QTUMUSDT",
+    "82": "CROUSDT",
+    "83": "SXPUSDT",
+    "84": "YGGUSDT",
+    "85": "ZECUSDT",
+    "86": "IMXUSDT",
+    "87": "SFPUSDT",
+    "88": "AUDIOUSDT",
+    "89": "ZENUSDT",
+    "90": "GTCUSDT",
+    "91": "LITUSDT",
+    "92": "CVCUSDT",
+    "93": "RNDRUSDT",
+    "94": "SCUSDT",
+    "95": "RSRUSDT",
+    "96": "STXUSDT",
+    "97": "MASKUSDT",
+    "98": "CTKUSDT",
+    "99": "BICOUSDT",
+    "100": "REQUSDT",
+    "101": "1INCHUSDT",
+    "102": "KLAYUSDT",
+    "103": "SPELLUSDT",
+    "104": "ANTUSDT",
+    "105": "DUSKUSDT",
+    "106": "ARUSDT",
+    "107": "REEFUSDT",
+    "108": "XMRUSDT",
+    "109": "PEOPLEUSDT",
+    "110": "IOTAUSDT",
+    "111": "CELOUSDT",
+    "112": "WAVESUSDT",
+    "113": "RVNUSDT",
+    "114": "KNCUSDT",
+    "115": "KAVAUSDT",
+    "116": "ROSEUSDT",
+    "117": "DENTUSDT",
+    "118": "CREAMUSDT",
+    "119": "LOOKSUSDT",
+    "120": "JASMYUSDT",
+    "121": "10000NFTUSDT",
+    "122": "HNTUSDT",
+    "123": "ZILUSDT",
+    "124": "NEOUSDT",
+    "125": "RAYUSDT",
+    "126": "CKBUSDT",
+    "127": "SUNUSDT",
+    "128": "JSTUSDT",
+    "129": "BANDUSDT",
+    "130": "RSS3USDT",
+    "131": "OCEANUSDT",
+    "132": "1000BTTUSDT",
+    "133": "API3USDT",
+    "134": "BTCUSDH22",
+    "135": "BTCUSDM22",
+    "136": "ETHUSDH22",
+    "137": "ETHUSDM22"
+}
 
 '''
 
@@ -91,7 +240,7 @@ https://rekt-lbot.herokuapp.com/
 
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return 'Rekt Bot, ready for action'
 
 
 @app.route("/bbwp", methods=['POST', 'GET'])
@@ -131,94 +280,144 @@ def bbwp():
 
     return 'bbwp'
 
+
+def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval):
+
+    print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, interval)
+
+    result = client.LinearOrder.LinearOrder_new(
+        side=side,
+        symbol=ticker,
+        order_type="Limit",
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+        qty=units,
+        price=last_price,
+        time_in_force="GoodTillCancel",
+        reduce_only=False,
+        close_on_trigger=False
+
+    ).result()
+
+    print(result)
+
+    data = json.dumps(result[0])
+
+    entry = Orders(ticker=ticker, interval=interval, data=data)
+    db.session.add(entry)
+    db.session.commit()
+
+    try:
+        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED' + ticker + interval + ': ' + last_price))
+    except:
+        print('ORDER LINE CANCEL', ticker, interval)
+
+
 @app.route("/momoAction", methods=['POST', 'GET'])
 def momoAction():
     #line_bot_api.broadcast(TextSendMessage(text='signal'))
 
     webhook_data = json.loads(request.data)
 
-    asset = webhook_data['asset']
+    ticker = webhook_data['ticker']
+    interval = webhook_data['interval']
     code = webhook_data['code']
-    closeP =  webhook_data['close']
-    openP = webhook_data['open']
-    ema = webhook_data['ema']
-    strategy = webhook_data['strategy']
-    side = webhook_data['side']
+    action = webhook_data['action']
+    open = webhook_data['open']
 
     if code != key_code:
         line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
         return 'Invalid'
 
-    last_price = 0.0
+    coin_number = list(coinList.keys())[list(coinList.values()).index(ticker)]
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][coin_number]['last_price'])
 
-    if asset == "BTCUSDT":
-        last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][4]['last_price'])  # 4 is BTCUSDT
-        # line_bot_api.broadcast(   TextSendMessage(text='BTCUSDT ' + str(closeP) + ' ' + str(last_price)    )   )
-    if asset == "ETHUSDT":
-        last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][5]['last_price'])  # 4 is BTCUSDT
-        # line_bot_api.broadcast(TextSendMessage(text='ETHUSDT ' + str(closeP) + ' ' + str(last_price)))
+    bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
 
-    #print('PRICE', last_price)
+    if bbwp.value == 'valueDown':
+        print('BBWP CANCEL')
+        try:
+            line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval))
+        except:
+            print('BBWP LINE CANCEL', ticker, interval)
 
-    ## calculate candle
-    candle = 'red'
-    if openP < closeP:
-        candle = 'green'
-
-    ## calculate distance from ema
-    distance = round((((closeP - ema)/closeP)*100), 2)
-
-    #line_bot_api.broadcast(TextSendMessage(text=str(distance) + ' ' + candle))
-
-    ## calculate stop_loss
-    stopLoss = round(closeP)
-    marker = 0
-    if abs(distance) < 2:
-        if side == 'Buy':
-            stopLoss = closeP*0.99
-        else:
-            stopLoss = closeP*1.01
-        marker = 1
-    else:
-        factor = (abs(distance)/2)/100
-        if side == 'Buy':
-            stopLoss = closeP * (1-factor)
-        else:
-            stopLoss = closeP * (1+factor)
-        marker = 2
-
-    # line_bot_api.broadcast(TextSendMessage(text=str(stopLoss) + ' Marker: ' + str(marker) ))
-
-    ## cancel action
-    if abs(distance) < 1:
-        line_bot_api.broadcast(TextSendMessage( text=asset + ' Abort: ' + strategy + ' last: ' + str(last_price) + ' ema distance: ' + str(distance) + ' stop: ' + str(stopLoss)  ))
-        return False
-    else:
-        line_bot_api.broadcast(TextSendMessage( text=asset + ' Continue: ' + strategy + ' last: ' + str(last_price) +  ' ema distance: ' + str(distance) + ' stop: ' + str(stopLoss)  ))
-
-    position_off = True
-
-    position = client.LinearPositions.LinearPositions_myPosition(symbol=asset).result()[0]['result']
-    for x in position:
-        if x['size'] > 0:
-            print('SIZE', x['size'])
-            print('SIDE', x['side'])
-            line_bot_api.broadcast(TextSendMessage(text='POSITION ON: ' + str(x['side']) + ' Amount: ' + str(x['size']) ))
-            position_off = False
+    side = action
 
 
-    if position_off:
-        #line_bot_api.broadcast(TextSendMessage(text='position_off ' + str(closeP)))
-        ## choose dollar amount
-        units = 1000/last_price
-        line_bot_api.broadcast(TextSendMessage(text=str(round(units, 2)) + ' ' + str(round(stopLoss)) + ' ' + str(round(ema))    ))
-        result = client.LinearOrder.LinearOrder_new(side=side,symbol=asset,order_type="Market",qty=round(units, 2),stop_loss=round(stopLoss),take_profit=round(ema),time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
-        print(result)
-        #line_bot_api.broadcast(TextSendMessage(text='result action'))
-        line_bot_api.broadcast(TextSendMessage(text='ACTION: ' + json.dumps(result[0]['result'])))
+    ''' GET STOPS '''
 
-    return 'divergence'
+    roundStops = {
+        "BTCUSDT": 1,
+        "MATICUSDT" : 2
+    }
 
+    stop_loss = round(last_price*0.996, roundStops[ticker])
+    take_profit = round(last_price*1.004, roundStops[ticker])
+
+    print("STOP/PROFIT:", stop_loss, take_profit)
+
+
+    ''' GET UNITS'''
+
+    roundUnits = {
+        "BTCUSDT": 3,
+        "MATICUSDT" : 1
+    }
+
+    dollars = 100
+    units = round(dollars/last_price, roundUnits[ticker])
+
+    print('UNITS', units)
+
+    placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval)
+
+
+    return 'momoAction'
+
+@app.route("/info", methods=['POST', 'GET'])
+def info():
+    #line_bot_api.broadcast(TextSendMessage(text='signal'))
+
+    # coinList= {}
+    # count = 0
+
+
+    # check = client.Market.Market_symbolInfo().result()[0]['result']
+    # for y in check:
+    #     coinList[count] = y['symbol']
+    #     count += 1
+    #     print('TUPLE', json.dumps(y))
+
+    # position = client.LinearPositions.LinearPositions_myPosition(symbol="MATICUSDT").result()[0]['result']
+    # for x in position:
+    #     print('DUMP', json.dumps(x))
+
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][21]['last_price'])
+
+    ticker = 'MATICUSDT'
+
+
+    stop_loss = round(last_price*0.996, 3)
+    take_profit = round(last_price*1.004, 3)
+    print(stop_loss, take_profit)
+
+    #coin_number = list(coinList.keys())[list(coinList.values()).index(ticker)]
+
+    # result = client.LinearOrder.LinearOrder_new(
+    #     side='Buy',
+    #     symbol=ticker,
+    #     order_type="Limit",
+    #     stop_loss=stop_loss,
+    #     take_profit=take_profit,
+    #     qty=100,
+    #     price=last_price,
+    #     time_in_force="GoodTillCancel",
+    #     reduce_only=False,
+    #     close_on_trigger=False
+    # ).result()
+
+    print(result)
+    return 'test'
 
 @app.route("/testAction/<string:code>", methods=['POST', 'GET'])
 def testAction(code):
