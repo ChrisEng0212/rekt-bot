@@ -110,7 +110,7 @@ def bbwp():
         newEntry = BBWP(ticker=ticker, timeframe=timeframe)
         db.session.add(newEntry)
         db.session.commit()
-        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe, ema='', value='', info='', extra='').first()
+        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe, ema='n', value='n', info='n', extra='n').first()
 
 
     return 'bbwp'
