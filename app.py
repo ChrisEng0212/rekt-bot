@@ -50,29 +50,38 @@ parser = WebhookParser(channel_secret)
 client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
 print('CLIENT', client)
 
-# class Trades(db.Model, UserMixin):
-#     id = db.Column(db.Integer, primary_key=True)
-#     username =  db.Column(db.String(20), unique=True, nullable=False)
+class BBWP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    ticker =  db.Column(db.String, unique=False, nullable=False)
+    timeframe =  db.Column(db.String, unique=False, nullable=False)
+    ema =  db.Column(db.String, unique=False, nullable=False)
+    value =  db.Column(db.String, unique=False, nullable=False)
+    info =  db.Column(db.String, unique=False, nullable=False)
+    extra =  db.Column(db.String, unique=False, nullable=False)
 
 
-# admin = Admin(app)
-# admin.add_view(MyModelView(User, db.session))
-# admin.add_view(MyModelView(Recruits, db.session))
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return DEBUG
 
-# obj = {
-#  "side": "Sell",
-#  "time": "{{timenow}}",
-#  "ticker":"{{ticker}}" ,
-#  "strategy": "momo",
-#  "exchange": "{{exchange}}",
-#  "open":{{open}},
-#  "openP":{{open[1]}},#
-#  "Cross":{{Cross}},
-#  "CrossP":{{Cross[1]}},
-#  "bbwp":{{bbwp}},
-#  "bbwpMA1":{{bbwpMA1}},
-#  "cutOff":{{cutOff}}
-# }
+
+admin = Admin(app)
+
+admin.add_view(MyModelView(BBWP, db.session))
+
+'''
+{
+ "side": "Sell",
+ "time": "{{timenow}}",
+ "timeframe": "{{interval}}",
+ "ticker":"{{ticker}}" ,
+ "strategy": "bbwp",
+ "exchange": "{{exchange}}",
+ "open":"{{open}}"
+}
+
+'''
 
 ''' UI pages '''
 
@@ -80,6 +89,32 @@ print('CLIENT', client)
 def home():
     return 'Hello, World!'
 
+
+@app.route("/bbwp", methods=['POST', 'GET'])
+def bbwp():
+    #line_bot_api.broadcast(TextSendMessage(text='signal'))
+
+    webhook_data = json.loads(request.data)
+
+    ticker = webhook_data['ticker']
+    timeframe = webhook_data['interval']
+    code = webhook_data['code']
+
+    if code != key_code:
+        line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
+        return 'Invalid'
+
+
+    entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+
+    if not entry:
+        newEntry = BBWP(ticker=ticker, timeframe=timeframe)
+        db.session.add(newEntry)
+        db.session.commit()
+        entry = BBWP.query.filter_by(ticker=ticker, timeframe=timeframe).first()
+
+
+    return 'bbwp'
 
 @app.route("/momoAction", methods=['POST', 'GET'])
 def momoAction():
