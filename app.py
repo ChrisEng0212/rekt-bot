@@ -77,6 +77,7 @@ class MyModelView(ModelView):
 admin = Admin(app)
 
 admin.add_view(MyModelView(BBWPV, db.session))
+admin.add_view(MyModelView(Orders, db.session))
 
 
 coinList = {
@@ -320,7 +321,7 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
     db.session.commit()
 
     try:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED' + ticker + interval + ': ' + last_price))
+        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + ': ' + str(last_price)))
     except:
         print('ORDER LINE CANCEL', ticker, interval)
 
@@ -369,7 +370,7 @@ def momoAction():
 
     roundStops = {
         "BTCUSDT": 1,
-        "MATICUSDT" : 2
+        "MATICUSDT" : 4
     }
 
     stop_loss = round(last_price*0.996, roundStops[ticker])
@@ -386,7 +387,8 @@ def momoAction():
     }
 
     dollars = int(bbwp.info)
-    units = round(dollars/last_price, roundUnits[ticker])
+    margin = int(bbwp.extra)
+    units = round(dollars/last_price, roundUnits[ticker])*margin
 
     print('UNITS', units)
 
