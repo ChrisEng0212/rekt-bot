@@ -357,6 +357,13 @@ def momoAction():
 
         return 'CANCELLED ACTION'
 
+    position = client.LinearPositions.LinearPositions_myPosition(symbol=ticker).result()[0]['result']
+    for x in position:
+        print('POSITION', position)
+        if x['size'] > 0:
+            print('POSITION CANCEL')
+            return None
+
 
     ''' GET STOPS '''
 
