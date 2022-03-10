@@ -374,7 +374,7 @@ def momoAction():
     }
 
     stop_loss = round(last_price*0.996, roundStops[ticker])
-    take_profit = round(last_price*1.004, roundStops[ticker])
+    take_profit = round(last_price*1.01, roundStops[ticker])
 
     print("STOP/PROFIT:", stop_loss, take_profit)
 
@@ -465,45 +465,6 @@ def testAction(code):
     line_bot_api.broadcast(TextSendMessage(text= webhook_data['strategy'] + '/' + webhook_data['Cross'] + '/' + webhook_data['bbwp'] ))
 
     return 'test cross'
-
-
-@app.route("/test_callback/<string:code>/<string:tvdata>", methods=['POST', 'GET'])
-def testMode(code, tvdata):
-    if code != key_code:
-        return 'Invalid'
-
-    print('TEST_CALLBACK:', tvdata)
-
-    # line_bot_api.broadcast(TextSendMessage(text=tvdata))
-
-    position = client.LinearPositions.LinearPositions_myPosition(symbol="BTCUSDT").result()[0]['result']
-    for x in position:
-        if x['size'] > 0:
-            print(x)
-            print(x['size'])
-    print(len(position))
-
-    print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=31900).result())
-
-
-    # line_bot_api.broadcast(TextSendMessage(text=positionData))
-
-    return tvdata
-
-@app.route("/test", methods=['POST', 'GET'])
-def test():
-
-    print('TEST')
-
-    # result = client.LinearOrder.LinearOrder_new(side='Sell',symbol="BTCUSDT",order_type="Market",qty=0.01,stop_loss=50000,take_profit=40000,time_in_force="GoodTillCancel",reduce_only=False, close_on_trigger=False).result()
-    # print(type(result[0]['result']))
-    ema = 44950.55996856551
-
-    #print(client.LinearPositions.LinearPositions_tradingStop(symbol="BTCUSDT", side="Sell", stop_loss=round(ema)).result())
-
-    line_bot_api.broadcast(TextSendMessage(text='positionData'))
-
-    return 'Test'
 
 
 @handler.add(FollowEvent)
