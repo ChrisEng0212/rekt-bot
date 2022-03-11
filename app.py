@@ -252,7 +252,15 @@ https://rekt-lbot.herokuapp.com/
 
 @app.route('/')
 def home():
-    return 'Rekt Bot, ready for action'
+
+    homeDict = {}
+
+    setups = BBWPV.query.all()
+
+    for s in setups:
+        homeDict[s.ticker] = [s.interval, s.value, s.info]
+
+    return json.dumps(homeDict)
 
 
 @app.route("/bbwp", methods=['POST', 'GET'])
@@ -365,30 +373,38 @@ def momoAction():
             print('POSITION CANCEL')
             return 'POSITION CANCEL'
 
+    # entryDict = {
+    #     "dollars" : 100,
+    #     "margin" : 5,
+    #     "drawDown" : 0.996,
+    #     "drawUp" : 1.004,
+    #     "buyProfit" : 1.009,
+    #     "sellProfit" : 0.991,
+    #     "roundStops" : 4,
+    #     "roundUnits" : 1
+    # }
 
-    ''' GET STOPS '''
+    entryDict = json.loads(bbwp.info)
+    print('ENTRY DICT', entryDict)
 
-    roundStops = {
-        "BTCUSDT": 1,
-        "MATICUSDT" : 4
-    }
+    ''' GET SLTP '''
+    stop_loss = 'SL_NONE'
+    take_profit = 'TP_NONE'
 
-    stop_loss = round(last_price*0.996, roundStops[ticker])
-    take_profit = round(last_price*1.01, roundStops[ticker])
+    if action == 'Buy':
+        stop_loss = round(last_price*entryDict['drawDown'], entryDict['roundStops'])
+        take_profit = round(last_price*entryDict['buyProfit'], entryDict['roundStops'])
+    elif action == 'Sell':
+        stop_loss = round(last_price*entryDict['drawUp'], entryDict['roundStops'])
+        take_profit = round(last_price*entryDict['sellProfit'], entryDict['roundStops'])
 
-    print("STOP/PROFIT:", stop_loss, take_profit)
+    print("STOP/PROFIT:", action, stop_loss, take_profit)
 
 
     ''' GET UNITS'''
-
-    roundUnits = {
-        "BTCUSDT": 3,
-        "MATICUSDT" : 1
-    }
-
-    dollars = int(bbwp.info)
-    margin = int(bbwp.extra)
-    units = round(dollars/last_price, roundUnits[ticker])*margin
+    dollars = entryDict['dollars']
+    margin = entryDict['margin']
+    units = round(dollars/last_price, entryDict['roundUnits'])*margin
 
     print('UNITS', units)
 
