@@ -408,7 +408,7 @@ def momoAction():
 
     print('UNITS', units)
 
-    placeOrder(action, ticker, stop_loss, take_profit, last_price, units, interval)
+    placeOrder(action, ticker, stop_loss, take_profit, last_price, units, interval, open)
 
 
     return 'momoAction'
@@ -436,9 +436,9 @@ def info():
     ticker = 'MATICUSDT'
 
 
-    stop_loss = round(last_price*0.996, 3)
-    take_profit = round(last_price*1.004, 3)
-    print(stop_loss, take_profit)
+    # stop_loss = round(last_price*0.996, 3)
+    # take_profit = round(last_price*1.004, 3)
+    # print(stop_loss, take_profit)
 
     #coin_number = list(coinList.keys())[list(coinList.values()).index(ticker)]
 
