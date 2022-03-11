@@ -404,7 +404,7 @@ def momoAction():
     ''' GET UNITS'''
     dollars = entryDict['dollars']
     margin = entryDict['margin']
-    units = round(dollars/last_price, entryDict['roundUnits'])*margin
+    units = round(dollars/last_price, entryDict['roundUnits'])
 
     print('UNITS', units)
 
