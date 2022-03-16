@@ -355,17 +355,6 @@ def momoAction():
     print('COIN NUM', coin_number)
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][int(coin_number)]['last_price'])
 
-    bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
-
-    if bbwp.value == 'valueDown':
-        print('BBWP CANCEL')
-        # try:
-        #     line_bot_api.broadcast(TextSendMessage(text='BBWP CANCEL ' + ticker + interval + ' ' + time + ' ' + open))
-        # except:
-        #     print('BBWP LINE CANCEL', ticker, interval)
-
-        return 'CANCELLED ACTION'
-
     position = client.LinearPositions.LinearPositions_myPosition(symbol=ticker).result()[0]['result']
     for x in position:
         print('POSITION', position)
@@ -384,6 +373,7 @@ def momoAction():
     #     "roundUnits" : 1
     # }
 
+    bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
     entryDict = json.loads(bbwp.info)
     print('ENTRY DICT', entryDict)
 
@@ -404,7 +394,7 @@ def momoAction():
     ''' GET UNITS'''
     dollars = entryDict['dollars']
     margin = entryDict['margin']
-    units = round(dollars/last_price, entryDict['roundUnits'])
+    units = round(dollars/last_price, entryDict['roundUnits'])*margin
 
     print('UNITS', units)
 
