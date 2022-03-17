@@ -371,6 +371,9 @@ def momoAction():
     #     "sellProfit" : 0.991,
     #     "roundStops" : 4,
     #     "roundUnits" : 1
+
+    #  maxStop == 0.8
+    # drawUp = 1=0.008  (maxStop/100)
     # }
 
     bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
@@ -381,12 +384,21 @@ def momoAction():
     stop_loss = 'SL_NONE'
     take_profit = 'TP_NONE'
 
+
     if action == 'Buy':
-        stop_loss = round(last_price*entryDict['drawDown'], entryDict['roundStops'])
-        take_profit = round(last_price*entryDict['buyProfit'], entryDict['roundStops'])
+        drawDown = 1 - entryDict['maxStop']/100
+        stop_loss = round(float(open)*drawDown, entryDict['roundStops'])
+
+        buyP = 1 + entryDict['profit']/100
+        take_profit = round(float(open)*buyP, entryDict['roundStops'])
+
     elif action == 'Sell':
-        stop_loss = round(last_price*entryDict['drawUp'], entryDict['roundStops'])
-        take_profit = round(last_price*entryDict['sellProfit'], entryDict['roundStops'])
+        drawDown = 1 + entryDict['maxStop']/100
+        stop_loss = round(float(open)*drawDown, entryDict['roundStops'])
+
+        sellP = 1 - entryDict['profit']/100
+        take_profit = round(float(open)*sellP, entryDict['roundStops'])
+
 
     print("STOP/PROFIT:", action, stop_loss, take_profit)
 
@@ -421,9 +433,11 @@ def info():
     # for x in position:
     #     print('DUMP', json.dumps(x))
 
-    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][21]['last_price'])
 
     ticker = 'MATICUSDT'
+    interval = '15'
+    action = 'Buy'
+    open = float(client.Market.Market_symbolInfo().result()[0]['result'][21]['last_price'])
 
 
     # stop_loss = round(last_price*0.996, 3)
@@ -432,20 +446,34 @@ def info():
 
     #coin_number = list(coinList.keys())[list(coinList.values()).index(ticker)]
 
-    # result = client.LinearOrder.LinearOrder_new(
-    #     side='Buy',
-    #     symbol=ticker,
-    #     order_type="Limit",
-    #     stop_loss=stop_loss,
-    #     take_profit=take_profit,
-    #     qty=100,
-    #     price=last_price,
-    #     time_in_force="GoodTillCancel",
-    #     reduce_only=False,
-    #     close_on_trigger=False
-    # ).result()
+    bbwp = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
+    entryDict = json.loads(bbwp.info)
+    print('ENTRY DICT', entryDict)
 
-    print(result)
+    ''' GET SLTP '''
+    stop_loss = 'SL_NONE'
+    take_profit = 'TP_NONE'
+
+
+
+
+
+    if action == 'Buy':
+        drawDown = 1 - entryDict['maxStop']/100
+        stop_loss = round(float(open)*drawDown, entryDict['roundStops'])
+
+        buyP = 1 + entryDict['profit']/100
+        take_profit = round(float(open)*buyP, entryDict['roundStops'])
+
+    elif action == 'Sell':
+        drawDown = 1 + entryDict['maxStop']/100
+        stop_loss = round(float(open)*drawDown, entryDict['roundStops'])
+
+        sellP = 1 - entryDict['profit']/100
+        take_profit = round(float(open)*sellP, entryDict['roundStops'])
+
+
+    print("STOP/PROFIT:", action, open, stop_loss, take_profit)
     return 'test'
 
 @app.route("/testAction/<string:code>", methods=['POST', 'GET'])
