@@ -329,8 +329,9 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
     db.session.commit()
 
     try:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + ': ' + str(last_price)))
+        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + ': ' + str(open) + ': '  + str(stop_loss) + ': ' + str(take_profit)))
     except:
+        line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED'))
         print('ORDER LINE CANCEL', ticker, interval)
 
 
@@ -359,6 +360,7 @@ def momoAction():
     for x in position:
         print('POSITION', position)
         if x['size'] > 0:
+            line_bot_api.broadcast(TextSendMessage(text='POSITION CANCEL'))
             print('POSITION CANCEL')
             return 'POSITION CANCEL'
 
