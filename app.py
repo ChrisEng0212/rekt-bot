@@ -329,7 +329,7 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
     db.session.commit()
 
     try:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + ': ' + str(open) + ': '  + str(stop_loss) + ': ' + str(take_profit)))
+        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + side + ' open: ' + str(open) + ' lp: ' + str(last_price) + ' stop: '  + str(stop_loss) + ' profit: ' + str(take_profit)))
     except:
         line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED'))
         print('ORDER LINE CANCEL', ticker, interval)
