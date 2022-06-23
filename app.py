@@ -1,6 +1,5 @@
-from flask import Flask, request, abort, render_template, url_for, flash, redirect, jsonify
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, LoginManager, login_user, current_user, logout_user, login_required
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from datetime import datetime, timedelta
@@ -267,45 +266,6 @@ def handle_message(event):
 
 
 
-
-@app.route("/bbwp", methods=['POST', 'GET'])
-def bbwp():
-    #line_bot_api.broadcast(TextSendMessage(text='signal'))
-
-    #actions  emaUp emaDown  valUp valD
-
-    webhook_data = json.loads(request.data)
-
-    ticker = webhook_data['ticker']
-    interval = webhook_data['interval']
-    code = webhook_data['code']
-    action = webhook_data['action']
-
-
-    if code != key_code:
-        line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
-        return 'Invalid'
-
-
-    entry = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
-
-    if not entry:
-        newEntry = BBWPV(ticker=ticker, interval=interval, value='na')
-        db.session.add(newEntry)
-        db.session.commit()
-        entry = BBWPV.query.filter_by(ticker=ticker, interval=interval).first()
-
-    if action == 'valueUp':
-        entry.value = 'valueUp'
-        db.session.commit()
-
-    if action == 'valueDown':
-        entry.value = 'valueDown'
-        db.session.commit()
-
-    return 'bbwp'
-
-
 def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval, open):
 
     print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, interval, open)
@@ -324,7 +284,7 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
 
     ).result()
 
-    print(result)
+    print('RESULT', result)
 
     message = result[0]['ret_msg']
     data = json.dumps(result[0]['result'])
