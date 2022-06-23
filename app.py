@@ -253,14 +253,19 @@ https://rekt-lbot.herokuapp.com/
 @app.route('/')
 def home():
 
-    homeDict = {}
+    return json.dumps('Hello RektBot!')
 
-    setups = BBWPV.query.all()
 
-    for s in setups:
-        homeDict[s.ticker] = [s.interval, s.value, s.info]
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
 
-    return json.dumps(homeDict)
+    tx = event.message.text
+
+    print('EVENT', event)
+    print('MESSAGE', tx)
+    line_bot_api.reply_message(event.reply_token, tx)
+
+
 
 
 @app.route("/bbwp", methods=['POST', 'GET'])
