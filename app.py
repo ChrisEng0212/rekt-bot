@@ -1,7 +1,6 @@
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
+
 from datetime import datetime, timedelta
 import json
 import os
@@ -67,16 +66,6 @@ class Orders(db.Model):
     data =  db.Column(db.String, unique=False, nullable=True)
     info =  db.Column(db.String, unique=False, nullable=True)
 
-
-class MyModelView(ModelView):
-    def is_accessible(self):
-        return DEBUG
-
-
-admin = Admin(app)
-
-admin.add_view(MyModelView(BBWPV, db.session))
-admin.add_view(MyModelView(Orders, db.session))
 
 
 coinList = {
