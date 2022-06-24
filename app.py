@@ -48,24 +48,6 @@ parser = WebhookParser(channel_secret)
 client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
 print('CLIENT', client)
 
-class BBWPV(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    ticker =  db.Column(db.String, unique=False, nullable=False)
-    interval =  db.Column(db.String, unique=False, nullable=True)
-    value =  db.Column(db.String, unique=False, nullable=True)
-    info =  db.Column(db.String, unique=False, nullable=True)
-    extra =  db.Column(db.String, unique=False, nullable=True)
-
-class Orders(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    ticker =  db.Column(db.String, unique=False, nullable=False)
-    interval =  db.Column(db.String, unique=False, nullable=True)
-    message =  db.Column(db.String, unique=False, nullable=True)
-    data =  db.Column(db.String, unique=False, nullable=True)
-    info =  db.Column(db.String, unique=False, nullable=True)
-
 
 
 coinList = {
@@ -244,6 +226,7 @@ def home():
     return json.dumps('Hello RektBot!')
 
 
+## NOT SURE HOW THIS WORKS
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
 
@@ -255,9 +238,15 @@ def handle_message(event):
 
 
 
-def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval, open):
+def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, limit):
 
-    print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, interval, open)
+    # placeOrder(side, ticker, stop_loss, take_profit, last_price, deets[0], deets[3])
+
+    print('PLACEORDER', side, ticker, stop_loss, take_profit, last_price, units, limit)
+
+    price = last_price - limit
+    if side[0] == 'S':
+        price = last_price + limit
 
     result = client.LinearOrder.LinearOrder_new(
         side=side,
@@ -266,7 +255,7 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
         stop_loss=stop_loss,
         take_profit=take_profit,
         qty=units,
-        price=last_price,
+        price=price,
         time_in_force="GoodTillCancel",
         reduce_only=False,
         close_on_trigger=False
@@ -278,15 +267,75 @@ def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, interval
     message = result[0]['ret_msg']
     data = json.dumps(result[0]['result'])
 
-    entry = Orders(ticker=ticker, interval=interval, message=message, data=data)
-    db.session.add(entry)
-    db.session.commit()
-
     try:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + interval + side + ' open: ' + str(open) + ' lp: ' + str(last_price) + ' stop: '  + str(stop_loss) + ' profit: ' + str(take_profit)))
+        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + ticker + side + ' lp: ' + str(last_price) + ' stop: '  + str(stop_loss) + ' profit: ' + str(take_profit) + ' / '  + message + ' / ' + data))
     except:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED'))
-        print('ORDER LINE CANCEL', ticker, interval)
+        line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED' + data))
+        print('ORDER LINE CANCEL', ticker)
+
+
+
+@app.route("/order/<string:code>/<string:side>/<string:details>/", methods=['POST', 'GET'])
+def orderBot(code, side, details):
+    #line_bot_api.broadcast(TextSendMessage(text='signal'))
+
+    #details = '2000-200-100-20'
+
+    deets = details.split('-')
+
+    print('UNITS', deets)
+
+    if code != key_code:
+        line_bot_api.broadcast(TextSendMessage(text='Invalid Code: ' + code))
+        return 'Invalid'
+
+    coin_number = 0
+    ticker = 'BTCUSD'
+    print('COIN NUM', coin_number)
+    last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][int(coin_number)]['last_price'])
+
+    position = client.LinearPositions.LinearPositions_myPosition(symbol=ticker).result()[0]['result']
+    for x in position:
+        print('POSITION', position)
+        if x['size'] > 0:
+            line_bot_api.broadcast(TextSendMessage(text='POSITION CANCEL'))
+            print('POSITION CANCEL')
+            return 'POSITION CANCEL'
+
+    # entryDict = {
+    #     "dollars" : 100,
+    #     "margin" : 5,
+    #     "drawDown" : 0.996,
+    #     "drawUp" : 1.004,
+    #     "buyProfit" : 1.009,
+    #     "sellProfit" : 0.991,
+    #     "roundStops" : 4,
+    #     "roundUnits" : 1
+
+    #  maxStop == 0.8
+    # drawUp = 1=0.008  (maxStop/100)
+    # }
+
+
+
+    ''' GET SLTP '''
+    stop_loss = last_price - deets[1]
+    take_profit = last_price + deets[2]
+
+    if side[0] == 'S':
+        stop_loss = last_price + deets[1]
+        take_profit = last_price - deets[2]
+
+
+    print("STOP/PROFIT:", side, stop_loss, take_profit)
+
+
+    placeOrder(side, ticker, stop_loss, take_profit, last_price, deets[0], deets[3])
+
+
+    return 'orderAction'
+
+
 
 
 @app.route("/momoAction", methods=['POST', 'GET'])
