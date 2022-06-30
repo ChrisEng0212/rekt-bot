@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, abort
 from flask_sqlalchemy import SQLAlchemy
 
 from datetime import datetime, timedelta
@@ -49,193 +49,36 @@ client = bybit.bybit(test=False, api_key=api_key1, api_secret=api_secret1)
 print('CLIENT', client)
 
 
-
-coinList = {
-    "0": "BTCUSD",
-    "1": "ETHUSD",
-    "2": "EOSUSD",
-    "3": "XRPUSD",
-    "4": "DOTUSD",
-    "5": "BITUSD",
-    "6": "BTCUSDT",
-    "7": "ETHUSDT",
-    "8": "EOSUSDT",
-    "9": "XRPUSDT",
-    "10": "BCHUSDT",
-    "11": "LTCUSDT",
-    "12": "XTZUSDT",
-    "13": "LINKUSDT",
-    "14": "ADAUSDT",
-    "15": "DOTUSDT",
-    "16": "UNIUSDT",
-    "17": "XEMUSDT",
-    "18": "SUSHIUSDT",
-    "19": "AAVEUSDT",
-    "20": "DOGEUSDT",
-    "21": "MATICUSDT",
-    "22": "ETCUSDT",
-    "23": "BNBUSDT",
-    "24": "FILUSDT",
-    "25": "SOLUSDT",
-    "26": "XLMUSDT",
-    "27": "TRXUSDT",
-    "28": "VETUSDT",
-    "29": "THETAUSDT",
-    "30": "COMPUSDT",
-    "31": "AXSUSDT",
-    "32": "LUNAUSDT",
-    "33": "SANDUSDT",
-    "34": "MANAUSDT",
-    "35": "KSMUSDT",
-    "36": "ATOMUSDT",
-    "37": "AVAXUSDT",
-    "38": "CHZUSDT",
-    "39": "CRVUSDT",
-    "40": "ENJUSDT",
-    "41": "GRTUSDT",
-    "42": "SHIB1000USDT",
-    "43": "YFIUSDT",
-    "44": "BSVUSDT",
-    "45": "ICPUSDT",
-    "46": "FTMUSDT",
-    "47": "ALGOUSDT",
-    "48": "DYDXUSDT",
-    "49": "NEARUSDT",
-    "50": "SRMUSDT",
-    "51": "OMGUSDT",
-    "52": "IOSTUSDT",
-    "53": "DASHUSDT",
-    "54": "FTTUSDT",
-    "55": "BITUSDT",
-    "56": "GALAUSDT",
-    "57": "CELRUSDT",
-    "58": "HBARUSDT",
-    "59": "ONEUSDT",
-    "60": "C98USDT",
-    "61": "MKRUSDT",
-    "62": "COTIUSDT",
-    "63": "ALICEUSDT",
-    "64": "EGLDUSDT",
-    "65": "RENUSDT",
-    "66": "TLMUSDT",
-    "67": "RUNEUSDT",
-    "68": "ILVUSDT",
-    "69": "FLOWUSDT",
-    "70": "WOOUSDT",
-    "71": "LRCUSDT",
-    "72": "ENSUSDT",
-    "73": "IOTXUSDT",
-    "74": "CHRUSDT",
-    "75": "BATUSDT",
-    "76": "STORJUSDT",
-    "77": "SNXUSDT",
-    "78": "SLPUSDT",
-    "79": "ANKRUSDT",
-    "80": "LPTUSDT",
-    "81": "QTUMUSDT",
-    "82": "CROUSDT",
-    "83": "SXPUSDT",
-    "84": "YGGUSDT",
-    "85": "ZECUSDT",
-    "86": "IMXUSDT",
-    "87": "SFPUSDT",
-    "88": "AUDIOUSDT",
-    "89": "ZENUSDT",
-    "90": "GTCUSDT",
-    "91": "LITUSDT",
-    "92": "CVCUSDT",
-    "93": "RNDRUSDT",
-    "94": "SCUSDT",
-    "95": "RSRUSDT",
-    "96": "STXUSDT",
-    "97": "MASKUSDT",
-    "98": "CTKUSDT",
-    "99": "BICOUSDT",
-    "100": "REQUSDT",
-    "101": "1INCHUSDT",
-    "102": "KLAYUSDT",
-    "103": "SPELLUSDT",
-    "104": "ANTUSDT",
-    "105": "DUSKUSDT",
-    "106": "ARUSDT",
-    "107": "REEFUSDT",
-    "108": "XMRUSDT",
-    "109": "PEOPLEUSDT",
-    "110": "IOTAUSDT",
-    "111": "CELOUSDT",
-    "112": "WAVESUSDT",
-    "113": "RVNUSDT",
-    "114": "KNCUSDT",
-    "115": "KAVAUSDT",
-    "116": "ROSEUSDT",
-    "117": "DENTUSDT",
-    "118": "CREAMUSDT",
-    "119": "LOOKSUSDT",
-    "120": "JASMYUSDT",
-    "121": "10000NFTUSDT",
-    "122": "HNTUSDT",
-    "123": "ZILUSDT",
-    "124": "NEOUSDT",
-    "125": "RAYUSDT",
-    "126": "CKBUSDT",
-    "127": "SUNUSDT",
-    "128": "JSTUSDT",
-    "129": "BANDUSDT",
-    "130": "RSS3USDT",
-    "131": "OCEANUSDT",
-    "132": "1000BTTUSDT",
-    "133": "API3USDT",
-    "134": "BTCUSDH22",
-    "135": "BTCUSDM22",
-    "136": "ETHUSDH22",
-    "137": "ETHUSDM22"
-}
-
-'''
-
-https://rekt-lbot.herokuapp.com/
-
-
-{
- "time": "{{timenow}}",
- "interval": "{{interval}}",
- "ticker":"{{ticker}}" ,
- "strategy": "bbwp",
- "exchange": "{{exchange}}",
- "action" :"action",
- "code": "code",
- "open":"{{open}}"
-}
-
-{
- "time": "{{timenow}}",
- "interval": "{{interval}}",
- "ticker":"{{ticker}}" ,
- "action" :"Buy",
- "code": "code",
- "open":"{{open}}"
-}
-
-'''
-
-''' UI pages '''
-
 @app.route('/')
 def home():
 
     return json.dumps('Hello RektBot!')
 
+@app.route("/callback", methods=['POST'])
+def callback():
+    # get X-Line-Signature header value
+    signature = request.headers['X-Line-Signature']
 
-## NOT SURE HOW THIS WORKS
+    # get request body as text
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+
+    # handle webhook body
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        print("Invalid signature. Please check your channel access token/channel secret.")
+        abort(400)
+
+    return 'OK'
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-
-    tx = event.message.text
-
-    print('EVENT', event)
-    print('MESSAGE', tx)
-    line_bot_api.reply_message(event.reply_token, tx)
-
+    message_id = event.message.id
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=event.message.text + str(message_id)))
 
 
 def placeOrder(side, ticker, stop_loss, take_profit, last_price, units, limit):
@@ -294,7 +137,7 @@ def orderBot(code, side, details):
     print('COIN NUM', coin_number)
     last_price = float(client.Market.Market_symbolInfo().result()[0]['result'][int(coin_number)]['last_price'])
 
-    position = client.LinearPositions.LinearPositions_myPosition(symbol=ticker).result()[0]['result']
+    position = client.LinearPositions.OrderPositions_myPosition(symbol=ticker).result()[0]['result']
     for x in position:
         print('POSITION', position)
         if x['size'] > 0:
