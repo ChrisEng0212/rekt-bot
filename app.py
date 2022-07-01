@@ -50,12 +50,15 @@ print('SESSION', session)
 
 def getInfo(get):
 
-    position = session.my_position(symbol="BTCUSD")['result']['size']
-    funds = session.get_wallet_balance()['result']['BTC']['equity']
-    last_price = session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price']
-    price = int(last_price.split('.')[0])
+    info = {'position' :session.my_position(symbol="BTCUSD")['result']['size'],
+            'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
+            'last_price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0])
+            }
 
-    return get
+    if get in info:
+        return info[get]
+    else:
+        return get
 
 
 def placeOrder(side, price, stop_loss, take_profit, type, qty):
@@ -173,12 +176,11 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    message_id = event.message.id
     tx = event.message.text
     userID = event.source.user_id
 
-
-    line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
+    if userID != 'U42808320bf42431f27a9aa9df42e8312':
+        line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
 
 
     ret = getInfo(tx)
