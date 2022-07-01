@@ -48,20 +48,8 @@ print('SESSION', session)
 
 ## Sesson Actions
 
-def getInfo(get):
 
-    info = {'position' :session.my_position(symbol="BTCUSD")['result']['size'],
-            'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
-            'last_price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0])
-            }
-
-    if get in info:
-        return info[get]
-    else:
-        return get
-
-
-def placeOrder(side, price, stop_loss, take_profit, type, qty):
+def placeOrder(side, type, price, stop_loss, take_profit, qty):
 
     if type == 'Market':
         price = None
@@ -181,13 +169,48 @@ def handle_message(event):
 
     if userID != 'U42808320bf42431f27a9aa9df42e8312':
         line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
+        return False
+
+    info = {'position' :session.my_position(symbol="BTCUSD")['result']['size'],
+            'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
+            'price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0]),
+            'order' : 'b-m-p-sl-tp-q'
+            }
+
+    deets = tx.split(' ')
+
+    if int(info['position']) != 0:
+        line_bot_api.broadcast(TextSendMessage(text='Position On ' + info['position'] ))
+    elif tx in info:
+        line_bot_api.broadcast(TextSendMessage(text=info[tx]))
+    elif len(deets) == 6:
+
+        s = {'b': 'Buy',
+             's': 'Sell'
+             }
+
+        p = {'b': -1,
+             's': 1
+             }
+
+        t = {'m': 'Market',
+             'l': 'Limit'
+             }
 
 
-    ret = getInfo(tx)
-    if ret == tx:
-        line_bot_api.broadcast(TextSendMessage(text='No Action'))
+        side = s[deets[0]]
+        type = t[deets[1]]
+        price = info['price'] + deets[2]*p[deets[0]]
+        stop_loss = info['price'] + deets[3]*p[deets[0]]
+        take_profit = info['price'] - deets[4]*p[deets[0]]
+        qty = deets[5]
+
+        placeOrder(side, type, price, stop_loss, take_profit, qty)
+        #placeOrder(side, type, price, stop_loss, take_profit,  qty)
     else:
-        line_bot_api.broadcast(TextSendMessage(text=str(ret)))
+        line_bot_api.broadcast(TextSendMessage(text='No Action'))
+
+
 
 
 @handler.add(FollowEvent)
