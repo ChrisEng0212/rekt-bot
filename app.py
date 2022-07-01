@@ -180,7 +180,7 @@ def handle_message(event):
     deets = tx.split(' ')
 
     if int(info['position']) != 0:
-        line_bot_api.broadcast(TextSendMessage(text='Position On ' + info['position'] ))
+        line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))
     elif tx in info:
         line_bot_api.broadcast(TextSendMessage(text=info[tx]))
     elif len(deets) == 6:
