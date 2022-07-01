@@ -1,5 +1,6 @@
 line-bot-sdk==1.16.0
 Bybit==0.2.10
+pybit==2.3.0
 Flask-Admin==1.5.3
 Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
