@@ -175,16 +175,17 @@ def callback():
 def handle_message(event):
     message_id = event.message.id
     tx = event.message.text
+    userID = event.source.user_id
 
-    if int(message_id) != 16352280364015:
-        line_bot_api.broadcast(TextSendMessage(text='some else tried to use strategy bot'))
-        return 'Wrong Account'
+
+    line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
+
+
+    ret = getInfo(tx)
+    if ret == tx:
+        line_bot_api.broadcast(TextSendMessage(text='No Action'))
     else:
-        ret = getInfo(tx)
-        if ret == tx:
-            line_bot_api.broadcast(TextSendMessage(text='No Action'))
-        else:
-            line_bot_api.broadcast(TextSendMessage(text=str(ret)))
+        line_bot_api.broadcast(TextSendMessage(text=str(ret)))
 
 
 @handler.add(FollowEvent)
