@@ -136,7 +136,7 @@ def handle_message(event):
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
     elif tx in info:
         if tx == 'hl':
-            hl= info['hl']['high'] + ' / ' + info['hl']['low']
+            hl = info['hl']['high'] + ' / ' + info['hl']['low']
             line_bot_api.broadcast(TextSendMessage(text='High / Low = ' + hl))
         else:
             line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + info[tx]))
@@ -168,8 +168,12 @@ def handle_message(event):
         if deets[3] == 'hl':
             data = info['hl']
 
+
+
             low = int(data['low'].split('.')[0]) - 2
             high = int(data['high'].split('.')[0]) + 2
+
+            print('HighLow Targets', json.dumps(data), price, low, high)
 
             if deets[0] == 'b':
                 stop_loss = low
