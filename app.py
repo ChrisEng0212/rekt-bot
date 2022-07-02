@@ -200,7 +200,7 @@ def handle_message(event):
         data = info['hl']
 
 
-        price = int(data[0]['close'].split('.')[0]) + limit*p[side]
+        price = int(data[1]['close'].split('.')[0]) + limit*p[side]
 
         if sltp == 'hl':
 
