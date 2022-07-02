@@ -51,6 +51,8 @@ print('SESSION', session)
 
 def placeOrder(side, type, price, stop_loss, take_profit, qty):
 
+    line_bot_api.broadcast(TextSendMessage(text='Order Placement'))
+
     if type == 'Market':
         price = None
 
@@ -111,9 +113,26 @@ def callback():
     return 'OK'
 
 
+def getHiLow(data):
+
+    print('GET HI LOW ', data)
+
+    hi1 = int(data[0]['high'].split('.')[0])
+    hi2 = int(data[1]['high'].split('.')[0])
+    low1 = int(data[0]['low'].split('.')[0])
+    low2 = int(data[1]['low'].split('.')[0])
+
+    mHi = max(hi1, hi2)
+    mLow = min(low1, low2)
+
+    return { 'low' : mLow, 'high' : mHi }
+
+
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    line_bot_api.broadcast(TextSendMessage(text='Command received'))
+
 
     tx = event.message.text
     userID = event.source.user_id
@@ -130,7 +149,7 @@ def handle_message(event):
             'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
             'pnl' : session.get_wallet_balance()['result']['BTC']['realised_pnl'],
             'price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0]),
-            'hl' : session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0],
+            'hl' : session.query_kline(symbol="BTCUSD", interval="60", from_time=str(timestamp))['result'],
             'low' : int(session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0]['low'].split('.')[0]) - 2,
             'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg'],
             'order' : 'side(bs)-type(ml)-limit(diff$)-sl/tp-qnt(shp)'
@@ -140,6 +159,8 @@ def handle_message(event):
     print('DEETS', deets)
     position = info['position']
     print('POSITION', position)
+
+    line_bot_api.broadcast(TextSendMessage(text='Ready to Process'))
 
     if position != 0 and len(deets) >= 5:
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
@@ -178,13 +199,15 @@ def handle_message(event):
 
         data = info['hl']
 
-        price = int(data['close'].split('.')[0]) + limit*p[side]
+
+        price = int(data[0]['close'].split('.')[0]) + limit*p[side]
 
         if sltp == 'hl':
 
-            low = int(data['low'].split('.')[0]) - 2
-            high = int(data['high'].split('.')[0]) + 2
+            lh = getHiLow(data)
 
+            low = lh['low']
+            high = lh['high']
 
             if side == 'b':
                 stop_loss = low
@@ -227,12 +250,6 @@ def handle_message(event):
         string += info['order']
 
         line_bot_api.broadcast(TextSendMessage(text=string))
-
-
-
-
-
-
 
 
 
