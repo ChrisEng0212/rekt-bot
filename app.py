@@ -1,6 +1,6 @@
 from flask import Flask, request, abort
 from flask_sqlalchemy import SQLAlchemy
-
+from datetime import datetime, timedelta
 import json
 import pprint
 
@@ -111,20 +111,25 @@ def handle_message(event):
         line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
         return False
 
+    now = datetime.now()
+    timestamp = int(datetime.timestamp(now)) - 7200
+    print("timestamp =", timestamp)
+
     info = {'position' :session.my_position(symbol="BTCUSD")['result']['size'],
             'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
+            'pnl' : session.get_wallet_balance()['result']['BTC']['realised_pnl'],
             'price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0]),
-            'high' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['high_price_24h'].split('.')[0]),
-            'low' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['low_price_24h'].split('.')[0]),
-            'order' : 'b-m-p-sl-tp-q',
-            'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg']
+            'hl' : session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0],
+            'low' : int(session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0]['low'].split('.')[0]) - 2,
+            'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg'],
+            'order' : 'side(bs)-type(ml)-price(diff$)-sl/tp-qnt(shp)'
             }
 
     deets = tx.split(' ')
     print('DEETS', deets)
     print('POSITION', int(info['position']))
 
-    if int(info['position']) != 0 and len(deets) >= 6:
+    if int(info['position']) != 0 and len(deets) >= 5:
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))
     elif tx in info:
         line_bot_api.broadcast(TextSendMessage(text=info[tx]))
@@ -140,20 +145,62 @@ def handle_message(event):
              }
 
         t = {'m': 'Market',
-             'l': 'Limit'
+             'l': 'Limit',
+             's': 'Spread'
+             }
+
+        q = {'s': 2000,
+             'h': 1000,
+             'p': 3000
              }
 
         side = s[deets[0]]
         type = t[deets[1]]
         price = info['price'] + int(deets[2])*p[deets[0]]
-        stop_loss = info['price'] + int(deets[3])*p[deets[0]]
-        take_profit = info['price'] - int(deets[4])*p[deets[0]]
-        qty = int(deets[5])
+
+        if deets[3] == 'hl':
+            data = info['hl']
+
+            low = int(data['low'].split('.')[0]) - 2
+            high = int(data['high'].split('.')[0]) + 2
+
+            if deets[0] == 'b':
+                stop_loss = low
+                take_profit = high
+            else:
+                stop_loss = high
+                take_profit = low
+        else:
+            targets = deets[3].split('/')
+            if len(targets) > 1:
+                stop_loss = info['price'] + int(targets[0])*p[deets[0]]
+                take_profit = info['price'] - int(targets[1])*p[deets[0]]
+            else:
+                stop_loss = info['price'] + int(targets[0])*p[deets[0]]
+                take_profit = info['price'] - int(targets[0])*p[deets[0]]
+
+        if deets[4] in q:
+            qty = q[deets[4]]
+        else:
+            qty = int(deets[4])
 
         placeOrder(side, type, price, stop_loss, take_profit, qty)
         #placeOrder(side, type, price, stop_loss, take_profit,  qty)
     else:
-        line_bot_api.broadcast(TextSendMessage(text='No Action'))
+        string = 'No Action - Available Functions: '
+        for x in info:
+            string += x + ' - '
+
+        string += info['order']
+
+        line_bot_api.broadcast(TextSendMessage(text=string))
+
+
+
+
+
+
+
 
 
 
