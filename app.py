@@ -212,7 +212,7 @@ def handle_message(event):
             qty = int(quant)
 
         if type == 'Spread':
-            for i in int(limit):
+            for i in range(limit):
                 spread = price + i*p[side]
                 placeOrder(side, type, spread, stop_loss, take_profit, qty/limit)
         else:
