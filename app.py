@@ -65,7 +65,7 @@ def placeOrder(side, type, price, stop_loss, take_profit, qty):
     time_in_force="GoodTillCancel"
     )
 
-    print(order)
+    print('ORDER', order)
 
     message = order['ret_msg']
     data = json.dumps(order['result'])
@@ -75,66 +75,6 @@ def placeOrder(side, type, price, stop_loss, take_profit, qty):
     except:
         line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED' + data))
         print('ORDER LINE CANCEL')
-
-
-
-def cancelOrder():
-    print(session.cancel_all_active_orders(symbol="BTCUSD"))
-
-
-
-position = {'id': 0,
-           'position_idx': 0,
-           'mode': 0,
-           'user_id': 557296,
-           'risk_id': 1,
-           'symbol': 'BTCUSD',
-           'side': 'None',
-           'size': 0,
-           'position_value': '0',
-           'entry_price': '0',
-           'is_isolated': True,
-           'auto_add_margin': 0,
-           'leverage': '3',
-           'effective_leverage': '3',
-           'position_margin': '0',
-           'liq_price': '0',
-           'bust_price': '0',
-           'occ_closing_fee': '0',
-           'occ_funding_fee': '0',
-           'take_profit': '0',
-           'stop_loss': '0',
-           'trailing_stop': '0',
-           'position_status': 'Normal',
-           'deleverage_indicator': 0,
-           'oc_calc_data': '{"blq":0,"slq":0,"bmp":0,"smp":0,"bv2c":0.33473334,"sv2c":0.33433334}',
-           'order_margin': '0',
-           'wallet_balance': '0.07579818',
-           'realised_pnl': '-0.00118163',
-           'unrealised_pnl': 0,
-           'cum_realised_pnl': '-0.55798444',
-           'cross_seq': 14093364496,
-           'position_seq': 4438196956,
-           'created_at': '2019-07-02T02:22:32Z',
-           'updated_at': '2022-07-01T04:04:06.238822396Z',
-           'tp_sl_mode': 'Full'
-        }
-
-funds = {'BTC': {'equity': 0.07579818,
-                 'available_balance': 0.07579818,
-                 'used_margin': 0,
-                 'order_margin': 0,
-                 'position_margin': 0,
-                 'occ_closing_fee': 0,
-                 'occ_funding_fee': 0,
-                 'wallet_balance': 0.07579818,
-                 'realised_pnl': -0.00118163,
-                 'unrealised_pnl': 0,
-                 'cum_realised_pnl': -0.55798444,
-                 'given_cash': -3.0506730319093816e-31,
-                 'service_cash': 0}
-         }
-
 
 
 @app.route('/')
@@ -167,7 +107,7 @@ def handle_message(event):
     tx = event.message.text
     userID = event.source.user_id
 
-    if userID != 'U42808320bf42431f27a9aa9df42e8312':
+    if userID != BaseConfig.userID:
         line_bot_api.broadcast(TextSendMessage(text='some one else tried to use strategy bot ' + str(userID)))
         return False
 
@@ -177,11 +117,12 @@ def handle_message(event):
             'high' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['high_price_24h'].split('.')[0]),
             'low' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['low_price_24h'].split('.')[0]),
             'order' : 'b-m-p-sl-tp-q',
-            'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")
+            'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg']
             }
 
     deets = tx.split(' ')
     print('DEETS', deets)
+    print('POSITION', int(info['position']))
 
     if int(info['position']) != 0 and len(deets) >= 6:
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))

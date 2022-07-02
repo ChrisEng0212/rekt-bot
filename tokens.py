@@ -1,7 +1,7 @@
 import os
 
 try:
-    from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1, key_code
+    from meta import SQLALCHEMY_DATABASE_URI, SECRET_KEY, DEBUG, channel_access_token, channel_secret, api_key1, api_secret1, key_code, userID
 
 except:
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
@@ -12,6 +12,7 @@ except:
     api_key1 = os.environ['api_key1']
     api_secret1 = os.environ['api_secret1']
     key_code = os.environ['key_code']
+    userID = os.environ['userID']
 
 class BaseConfig:
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI
@@ -22,3 +23,4 @@ class BaseConfig:
     api_key1 = api_key1
     api_secret1 = api_secret1
     key_code = key_code
+    userID = userID
