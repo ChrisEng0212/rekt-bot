@@ -54,6 +54,11 @@ def placeOrder(side, type, price, stop_loss, take_profit, qty):
     if type == 'Market':
         price = None
 
+    spread = False
+    if type == 'Spread':
+        spread = True
+        type = 'Limit'
+
     order = session.place_active_order(
     symbol="BTCUSD",
     side=side,
@@ -71,7 +76,11 @@ def placeOrder(side, type, price, stop_loss, take_profit, qty):
     data = json.dumps(order['result'])
 
     try:
-        line_bot_api.broadcast(TextSendMessage(text='ORDER PLACED ' + side + ' lp: ' + str(price) + ' stop: '  + str(stop_loss) + ' profit: ' + str(take_profit) + ' / '  + message + ' / ' + data))
+        string = 'ORDER PLACED ' + side + ' lp: ' + str(price) + ' stop: '  + str(stop_loss) + ' profit: ' + str(take_profit) + ' / '  + message
+        if not spread:
+            line_bot_api.broadcast(TextSendMessage(text=string + ' / ' + data))
+        else:
+            print(string)
     except:
         line_bot_api.broadcast(TextSendMessage(text='ORDER LINE FAILED' + data))
         print('ORDER LINE CANCEL')
@@ -169,7 +178,7 @@ def handle_message(event):
 
         data = info['hl']
 
-        price = data['close'] + limit*p[side]
+        price = int(data['close'].split('.')[0]) + limit*p[side]
 
         if sltp == 'hl':
 
@@ -204,8 +213,8 @@ def handle_message(event):
 
         if type == 'Spread':
             for i in limit:
-                price = i*p[side]
-                placeOrder(side, type, price, stop_loss, take_profit, qty/limit)
+                spread = price + i*p[side]
+                placeOrder(side, type, spread, stop_loss, take_profit, qty/limit)
         else:
             placeOrder(side, type, price, stop_loss, take_profit, qty)
 
