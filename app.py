@@ -183,7 +183,8 @@ def handle_message(event):
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))
     elif tx in info:
         line_bot_api.broadcast(TextSendMessage(text=info[tx]))
-    elif len(deets) == 6:
+    elif len(deets) >= 6:
+        print('DEETS', deets)
 
         s = {'b': 'Buy',
              's': 'Sell'
@@ -197,13 +198,12 @@ def handle_message(event):
              'l': 'Limit'
              }
 
-
         side = s[deets[0]]
         type = t[deets[1]]
-        price = info['price'] + deets[2]*p[deets[0]]
-        stop_loss = info['price'] + deets[3]*p[deets[0]]
-        take_profit = info['price'] - deets[4]*p[deets[0]]
-        qty = deets[5]
+        price = info['price'] + int(deets[2])*p[deets[0]]
+        stop_loss = info['price'] + int(deets[3])*p[deets[0]]
+        take_profit = info['price'] - int(deets[4])*p[deets[0]]
+        qty = int(deets[5])
 
         placeOrder(side, type, price, stop_loss, take_profit, qty)
         #placeOrder(side, type, price, stop_loss, take_profit,  qty)
