@@ -51,7 +51,8 @@ print('SESSION', session)
 
 def placeOrder(side, type, price, stop_loss, take_profit, qty):
 
-    line_bot_api.broadcast(TextSendMessage(text='Order Placement'))
+    #line_bot_api.broadcast(TextSendMessage(text='Order Placement'))
+    print('tp', take_profit, price)
 
     if type == 'Market':
         price = None
@@ -134,6 +135,8 @@ def getHiLow(data):
 def handle_message(event):
 
 
+    #tx = event['message']
+
     tx = event.message.text
     userID = event.source.user_id
 
@@ -152,7 +155,7 @@ def handle_message(event):
             'hl' : session.query_kline(symbol="BTCUSD", interval="60", from_time=str(timestamp))['result'],
             'low' : int(session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0]['low'].split('.')[0]) - 2,
             'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg'],
-            'order' : 'side(bs)-type(ml)-limit(diff$)-sl/tp-qnt(shp)'
+            'order' : 'side(bs)-type(mls)-limit(diff$)-sl/tp-qnt(shp)'
             }
 
     deets = tx.split(' ')
@@ -160,7 +163,6 @@ def handle_message(event):
     position = info['position']
     print('POSITION', position)
 
-    line_bot_api.broadcast(TextSendMessage(text='Ready to Process'))
 
     if position != 0 and len(deets) >= 5:
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
@@ -185,11 +187,6 @@ def handle_message(event):
              's': 'Spread'
              }
 
-        q = {'s': 2000,
-             'h': 1000,
-             'p': 3000
-             }
-
         side = s[deets[0]]
         type = t[deets[1]]
         limit = int(deets[2])
@@ -199,28 +196,33 @@ def handle_message(event):
 
         data = info['hl']
 
+        close = int(data[1]['close'].split('.')[0])
 
-        price = int(data[1]['close'].split('.')[0]) + limit*p[side]
+        price = close + limit*p[side]
+
+        ''' get stop losses and take profit based on deets'''
 
         if sltp == 'hl':
-
+            # get high low of last 2 hours and set as stops
             lh = getHiLow(data)
+            print('lh', lh)
 
             low = lh['low']
             high = lh['high']
 
-            if side == 'b':
+            if side == 'Buy':
                 stop_loss = low
                 take_profit = high
             else:
                 stop_loss = high
                 take_profit = low
 
-            if stop_loss > price or take_profit < price:
-                string = 'HighLow Targets ' + str(price) + ' ' + str(low) + ' ' + str(high)
+            if stop_loss > close or take_profit < close:
+                string = 'HighLow targets out of bounds ' + str(close) + ' ' + str(low) + ' ' + str(high)
                 line_bot_api.broadcast(TextSendMessage(text=string))
 
         else:
+            # set stops as +/- the limit value set or figure two seperate values and set that
             targets = sltp.split('/')
             if len(targets) > 1:
                 stop_loss = price + int(targets[0])*p[side]
@@ -229,6 +231,14 @@ def handle_message(event):
                 stop_loss = price + int(targets[0])*p[side]
                 take_profit = price - int(targets[0])*p[side]
 
+
+        '''# get quantity of trade'''
+
+        q = {'s': 2000,
+             'h': 1000,
+             'p': 3000
+             }
+
         if quant in q:
             qty = q[quant]
         else:
@@ -236,8 +246,8 @@ def handle_message(event):
 
         if type == 'Spread':
             for i in range(limit):
-                spread = price + i*p[side]
-                placeOrder(side, type, spread, stop_loss, take_profit, qty/limit)
+                spreadLimit = close + i*p[side]
+                placeOrder(side, type, spreadLimit, stop_loss, take_profit, qty/limit)
         else:
             placeOrder(side, type, price, stop_loss, take_profit, qty)
 
@@ -251,7 +261,11 @@ def handle_message(event):
 
         line_bot_api.broadcast(TextSendMessage(text=string))
 
+# event = {'message' : 'b s 10 hl 10',
+#          'userID' : None
+# }
 
+# handle_message(event)
 
 @handler.add(FollowEvent)
 def handle_follow():
@@ -272,7 +286,6 @@ def default(event):
     with open('/', 'wb') as fd:
         for chunk in message_content.iter_content():
             fd.write(chunk)
-
 
 
 
