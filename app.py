@@ -174,17 +174,21 @@ def handle_message(event):
     info = {'position' :session.my_position(symbol="BTCUSD")['result']['size'],
             'funds' : session.get_wallet_balance()['result']['BTC']['equity'],
             'price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0]),
-            'order' : 'b-m-p-sl-tp-q'
+            'high' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['high_price_24h'].split('.')[0]),
+            'low' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['low_price_24h'].split('.')[0]),
+            'order' : 'b-m-p-sl-tp-q',
+            'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")
             }
 
     deets = tx.split(' ')
+    print('DEETS', deets)
 
-    if int(info['position']) != 0:
+    if int(info['position']) != 0 and len(deets) >= 6:
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))
     elif tx in info:
         line_bot_api.broadcast(TextSendMessage(text=info[tx]))
     elif len(deets) >= 6:
-        print('DEETS', deets)
+
 
         s = {'b': 'Buy',
              's': 'Sell'
