@@ -104,6 +104,8 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    line_bot_api.broadcast(TextSendMessage(text='Command recieved'))
+
     tx = event.message.text
     userID = event.source.user_id
 
@@ -127,13 +129,16 @@ def handle_message(event):
 
     deets = tx.split(' ')
     print('DEETS', deets)
-    print('POSITION', int(info['position']))
+    position = info['position']
+    print('POSITION', position)
 
-    if int(info['position']) != 0 and len(deets) >= 5:
-        line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(info['position']) ))
+    if position != 0 and len(deets) >= 5:
+        line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
     elif tx in info:
-        line_bot_api.broadcast(TextSendMessage(text=info[tx]))
-    elif len(deets) >= 6:
+        if tx == 'hl':
+            tx = info['hl']['high'] + ' / ' + info['hl']['low']
+        line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + info[tx]))
+    elif len(deets) >= 5:
 
 
         s = {'b': 'Buy',
