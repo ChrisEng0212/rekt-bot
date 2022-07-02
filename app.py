@@ -136,8 +136,10 @@ def handle_message(event):
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
     elif tx in info:
         if tx == 'hl':
-            tx = info['hl']['high'] + ' / ' + info['hl']['low']
-        line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + info[tx]))
+            hl= info['hl']['high'] + ' / ' + info['hl']['low']
+            line_bot_api.broadcast(TextSendMessage(text='High / Low = ' + hl))
+        else:
+            line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + info[tx]))
     elif len(deets) >= 5:
 
 
