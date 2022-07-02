@@ -104,7 +104,7 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    line_bot_api.broadcast(TextSendMessage(text='Command recieved'))
+    line_bot_api.broadcast(TextSendMessage(text='Command received'))
 
     tx = event.message.text
     userID = event.source.user_id
@@ -146,8 +146,8 @@ def handle_message(event):
              's': 'Sell'
              }
 
-        p = {'b': -1,
-             's': 1
+        p = {'Buy': -1,
+             'Sell': 1
              }
 
         t = {'m': 'Market',
