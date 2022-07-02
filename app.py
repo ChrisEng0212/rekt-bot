@@ -124,7 +124,7 @@ def handle_message(event):
             'hl' : session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0],
             'low' : int(session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0]['low'].split('.')[0]) - 2,
             'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg'],
-            'order' : 'side(bs)-type(ml)-price(diff$)-sl/tp-qnt(shp)'
+            'order' : 'side(bs)-type(ml)-limit(diff$)-sl/tp-qnt(shp)'
             }
 
     deets = tx.split(' ')
@@ -139,9 +139,8 @@ def handle_message(event):
             hl = info['hl']['high'] + ' / ' + info['hl']['low']
             line_bot_api.broadcast(TextSendMessage(text='High / Low = ' + hl))
         else:
-            line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + info[tx]))
+            line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + str(info[tx])))
     elif len(deets) >= 5:
-
 
         s = {'b': 'Buy',
              's': 'Sell'
@@ -163,39 +162,53 @@ def handle_message(event):
 
         side = s[deets[0]]
         type = t[deets[1]]
-        price = info['price'] + int(deets[2])*p[deets[0]]
+        limit = int(deets[2])
+        sltp = deets[3] # stop loss / take profit
+        quant = deets[4]
 
-        if deets[3] == 'hl':
-            data = info['hl']
 
+        data = info['hl']
 
+        price = data['close'] + limit*p[side]
+
+        if sltp == 'hl':
 
             low = int(data['low'].split('.')[0]) - 2
             high = int(data['high'].split('.')[0]) + 2
 
-            print('HighLow Targets', json.dumps(data), price, low, high)
 
-            if deets[0] == 'b':
+            if side == 'b':
                 stop_loss = low
                 take_profit = high
             else:
                 stop_loss = high
                 take_profit = low
+
+            if stop_loss > price or take_profit < price:
+                string = 'HighLow Targets ' + str(price) + ' ' + str(low) + ' ' + str(high)
+                line_bot_api.broadcast(TextSendMessage(text=string))
+
         else:
-            targets = deets[3].split('/')
+            targets = sltp.split('/')
             if len(targets) > 1:
-                stop_loss = info['price'] + int(targets[0])*p[deets[0]]
-                take_profit = info['price'] - int(targets[1])*p[deets[0]]
+                stop_loss = price + int(targets[0])*p[side]
+                take_profit = price - int(targets[1])*p[side]
             else:
-                stop_loss = info['price'] + int(targets[0])*p[deets[0]]
-                take_profit = info['price'] - int(targets[0])*p[deets[0]]
+                stop_loss = price + int(targets[0])*p[side]
+                take_profit = price - int(targets[0])*p[side]
 
-        if deets[4] in q:
-            qty = q[deets[4]]
+        if quant in q:
+            qty = q[quant]
         else:
-            qty = int(deets[4])
+            qty = int(quant)
 
-        placeOrder(side, type, price, stop_loss, take_profit, qty)
+        if type == 'Spread':
+            for i in limit:
+                price = i*p[side]
+                placeOrder(side, type, price, stop_loss, take_profit, qty/limit)
+        else:
+            placeOrder(side, type, price, stop_loss, take_profit, qty)
+
         #placeOrder(side, type, price, stop_loss, take_profit,  qty)
     else:
         string = 'No Action - Available Functions: '
@@ -205,8 +218,6 @@ def handle_message(event):
         string += info['order']
 
         line_bot_api.broadcast(TextSendMessage(text=string))
-
-
 
 
 
