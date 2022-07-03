@@ -153,13 +153,15 @@ def handle_message(event):
             'pnl' : session.get_wallet_balance()['result']['BTC']['realised_pnl'],
             'price' : int(session.latest_information_for_symbol(symbol="BTCUSD")['result'][0]['last_price'].split('.')[0]),
             'hl' : session.query_kline(symbol="BTCUSD", interval="60", from_time=str(timestamp))['result'],
-            'low' : int(session.query_kline(symbol="BTCUSD", interval="120", from_time=str(timestamp))['result'][0]['low'].split('.')[0]) - 2,
             'cancel' : session.cancel_all_active_orders(symbol="BTCUSD")['ret_msg'],
             'order' : 'side(bs)-type(mls)-limit(diff$)-sl/tp-qnt(shp)'
             }
 
     deets = tx.split(' ')
     print('DEETS', deets)
+
+    line_bot_api.broadcast(TextSendMessage('Command Received'))
+
     position = info['position']
     print('POSITION', position)
 
@@ -168,8 +170,13 @@ def handle_message(event):
         line_bot_api.broadcast(TextSendMessage(text='Position On ' + str(position) ))
     elif tx in info:
         if tx == 'hl':
-            hl = info['hl']['high'] + ' / ' + info['hl']['low']
-            line_bot_api.broadcast(TextSendMessage(text='High / Low = ' + hl))
+
+            hl = getHiLow(info['hl'])
+
+            line_bot_api.broadcast(TextSendMessage(text=json.dumps(hl)))
+
+        elif tx == 'pnl':
+            line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + str(info[tx])))
         else:
             line_bot_api.broadcast(TextSendMessage(text=tx + ': ' + str(info[tx])))
     elif len(deets) >= 5:
